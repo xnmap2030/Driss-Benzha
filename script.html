@@ -1,0 +1,682 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#080c11">
+<title>IG Factory X</title>
+<style>
+  :root{--bg:#080c11;--pn:#111823;--bd:#1f2937;--tx:#e9f0f8;--mu:#8695a7;--ac:#16a34a;--rd:#dc2626;--bl:#3b82f6;--yl:#eab308;--vi:#8b5cf6}
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  body{margin:0;background:var(--bg);color:var(--tx);font:14px/1.65 system-ui,-apple-system,Segoe UI,Tahoma;padding-bottom:50px}
+  .wrap{max-width:820px;margin:0 auto;padding:10px}
+  h1{font-size:16px;margin:8px 0 4px;letter-spacing:.3px}
+  .phases{display:flex;gap:6px;margin-bottom:10px}
+  .ph{flex:1;text-align:center;font-size:11px;padding:7px 4px;border-radius:9px;background:#0d141d;border:1px solid var(--bd);color:var(--mu)}
+  .ph.on{background:#0f2a1a;border-color:#1c5c33;color:#5ee08f}
+  .ph.done{background:#0c1a2b;border-color:#1e3a5f;color:#7fb0ea}
+  .card{background:var(--pn);border:1px solid var(--bd);border-radius:14px;padding:12px;margin-bottom:11px;position:relative;overflow:hidden}
+  .card.lock>*:not(.lockbox){opacity:.35;pointer-events:none;filter:grayscale(.4)}
+  .lockbox{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;background:rgba(8,12,17,.55);backdrop-filter:blur(2px);font-size:12px;color:var(--mu);z-index:5;text-align:center;padding:10px}
+  .lockbox b{color:var(--yl);font-size:13px}
+  .row{display:flex;gap:7px;flex-wrap:wrap;align-items:center;margin-bottom:8px}
+  label{color:var(--mu);font-size:12px;min-width:80px}
+  input,select,textarea{background:#070b10;border:1px solid var(--bd);color:var(--tx);border-radius:10px;padding:10px;font:inherit;flex:1;min-width:100px}
+  textarea{resize:vertical;min-height:62px;font-size:13px}
+  button{background:var(--bl);color:#fff;border:0;border-radius:10px;padding:11px 14px;font:inherit;font-weight:600;cursor:pointer}
+  button:active{transform:scale(.97)}
+  button.g{background:var(--ac)}button.r{background:var(--rd)}button.v{background:var(--vi)}
+  button.d{background:#151d28;border:1px solid var(--bd);font-weight:500;padding:6px 10px;font-size:12px;border-radius:8px}
+  button:disabled{opacity:.4}
+  .g2{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+  .g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:7px}
+  .stats{display:grid;grid-template-columns:repeat(5,1fr);gap:5px;text-align:center;font-size:10px;color:var(--mu)}
+  .stats div{background:#070b10;border:1px solid var(--bd);border-radius:9px;padding:6px 2px}
+  .stats b{display:block;font-size:15px;color:var(--tx)}
+  table{width:100%;border-collapse:collapse;font-size:12px}
+  th,td{border-bottom:1px solid var(--bd);padding:5px;text-align:right}
+  th{color:var(--mu);font-size:10px;font-weight:600}
+  .dot{width:8px;height:8px;border-radius:50%;background:var(--mu);display:inline-block}
+  .ok .dot{background:var(--ac)}.bad .dot{background:var(--rd)}.warn .dot{background:var(--yl)}.cool .dot{background:var(--bl)}
+  .bar{height:4px;background:#070b10;border-radius:3px;overflow:hidden;margin-bottom:7px}
+  .bar>i{display:block;height:100%;width:0;background:linear-gradient(90deg,#16a34a,#22c55e);transition:width .25s}
+  #log{background:#05080c;border:1px solid var(--bd);border-radius:10px;height:210px;overflow:auto;padding:7px;font:11px/1.5 ui-monospace,monospace;white-space:pre-wrap;word-break:break-word}
+  .l-bad{color:#ff7b7b}.l-ok{color:#5ee08f}.l-warn{color:#f2c94c}.l-mu{color:#6b7c8f}.l-vi{color:#b39dff}
+  .hint{font-size:11px;color:var(--mu);margin-top:5px}
+  .chip{font-size:10px;padding:2px 7px;border-radius:20px;background:#0d1a26;border:1px solid #1e3a5f;color:#7fb0ea}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>IG Factory X</h1>
+  <div class="phases">
+    <div class="ph on" id="ph1">1 · توليد</div>
+    <div class="ph" id="ph2">2 · تفاعل</div>
+  </div>
+
+  <div class="card" id="cSetup">
+    <div class="row"><label>بروكسيات</label><textarea id="proxies"></textarea></div>
+    <div class="row">
+      <button class="d" id="testPx">فحص</button>
+      <button class="d" id="resetPx">افتراضي</button>
+      <span class="chip" id="pxState">—</span>
+    </div>
+  </div>
+
+  <div class="card" id="cCreate">
+    <div class="g3">
+      <div class="row"><label>العداد</label><input id="count" type="number" value="10" min="1" max="300"></div>
+      <div class="row"><label>تأخير</label><input id="delay" type="number" value="55" min="8"></div>
+      <div class="row"><label>موجة</label><input id="wave" type="number" value="5" min="1"></div>
+    </div>
+    <div class="row"><label>كلمة السر</label><input id="pass" value="Ig!9xk2026z"></div>
+    <div class="row">
+      <label>دومين</label>
+      <select id="domain"><option value="">— حمّل —</option></select>
+      <button class="d" id="loadDomains">تحميل</button>
+    </div>
+    <div class="row">
+      <label>نمط الأسماء</label>
+      <select id="nameStyle">
+        <option value="mix">مختلط</option>
+        <option value="ar">أسماء عربية</option>
+        <option value="en">أسماء إنجليزية</option>
+        <option value="brand">براندات</option>
+      </select>
+    </div>
+    <div class="row">
+      <button class="g" id="start">إنشاء الحسابات</button>
+      <button class="r" id="stop" disabled>وقف</button>
+      <button class="d" id="wake">🔆 الشاشة</button>
+    </div>
+    <div class="bar"><i id="prog"></i></div>
+    <div class="stats">
+      <div><b id="sOk">0</b>خلق</div>
+      <div><b id="sBad">0</b>فشل</div>
+      <div><b id="sCmt">0</b>تعليق</div>
+      <div><b id="sFol">0</b>فولو</div>
+      <div><b id="sReady">0</b>حي</div>
+    </div>
+    <div class="hint" id="createHint">باقي: 0</div>
+  </div>
+
+  <div class="card lock" id="cEngage">
+    <div class="lockbox" id="lock1"><b>🔒 مقفول</b><span>كمّل مرحلة التوليد باش تتحل</span></div>
+    <div class="row"><label>بروفيل (فولو)</label><input id="profUrl" placeholder="https://instagram.com/username"></div>
+    <div class="row"><label>منشورات</label><textarea id="posts" placeholder="واحد فـ كل سطر&#10;https://www.instagram.com/p/XXXX/"></textarea></div>
+    <div class="row">
+      <label>نمط التعليق</label>
+      <select id="style">
+        <option value="darija">دارجة</option>
+        <option value="emoji">إيموجي فقط</option>
+        <option value="short">قصير</option>
+        <option value="question">سؤال</option>
+        <option value="english">إنجليزية</option>
+        <option value="hype">حماس</option>
+      </select>
+    </div>
+    <div class="row"><label>كلماتي</label><input id="extra" placeholder="كلمات تزاد عشوائياً (اختياري)"></div>
+    <div class="g3">
+      <div class="row"><label>Cooldown</label><input id="cool" type="number" value="45" min="10"></div>
+      <div class="row"><label>سقف/يوم</label><input id="cap" type="number" value="15" min="1"></div>
+      <div class="row"><label>عمال</label><input id="workers" type="number" value="2" min="1" max="5"></div>
+    </div>
+    <div class="row">
+      <button class="v" id="runCmt">بدا التعليق ⏎</button>
+      <button id="runFol">فولو للكل</button>
+      <button class="d" id="pause">⏸ توقيف مؤقت</button>
+      <button class="r" id="stopEng">⏹ وقف</button>
+    </div>
+    <div class="hint">Enter فـ خانة الكلمات كيبدا التعليق. كل تعليق مختلف، و ما كيتعاودش على نفس المنشور بنفس الحساب.</div>
+  </div>
+
+  <div class="card">
+    <div class="row" style="justify-content:space-between">
+      <b>الحسابات <span class="chip" id="accN">0</span></b>
+      <span>
+        <button class="d" id="health">فحص</button>
+        <button class="d" id="exp">تصدير</button>
+        <button class="d" id="impBtn">استيراد</button>
+        <button class="d" id="clr">مسح</button>
+        <input type="file" id="impFile" accept=".json" hidden>
+      </span>
+    </div>
+    <table><thead><tr><th></th><th>user</th><th>حالة</th><th>إجراء</th></tr></thead><tbody id="accB"></tbody></table>
+  </div>
+
+  <div class="card"><b>السجل</b><div id="log"></div></div>
+</div>
+
+<script>
+'use strict';
+/* ══════════ ثوابت ══════════ */
+const SIG_KEY='19ce5f445dbfd9d29c59dc2a78c616a7fc090a8e018b9267bc4240a30244c53b';
+const UA='Instagram 269.0.0.18.75 Android (28/9; 480dpi; 1080x2160; samsung; SM-G960F; starlte; samsungexynos9810; en_US; 355073990)';
+const APPID='936619743392459';
+const FORB=new Set(['cookie','user-agent','referer','origin','host','connection','content-length']);
+const DEF_PX=['https://test.cors.workers.dev/','https://cors.eu.org/','https://cors-anywhere.herokuapp.com/'];
+const MAIL='https://api.mail.tm';
+const $=s=>document.querySelector(s);
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+const rnd=n=>Math.floor(Math.random()*n);
+const pick=a=>a[rnd(a.length)];
+const hex=n=>[...crypto.getRandomValues(new Uint8Array(n))].map(b=>b.toString(16).padStart(2,'0')).join('');
+const uuid=()=>crypto.randomUUID();
+
+function log(m,c='l-mu'){
+  const d=document.createElement('div');d.className=c;
+  d.textContent=new Date().toLocaleTimeString('fr-FR')+'  '+m;
+  const L=$('#log');L.appendChild(d);
+  while(L.childElementCount>450)L.firstChild.remove();
+  L.scrollTop=1e9;
+}
+
+/* ══════════ بروكسي بول ══════════ */
+const POOL={list:[],dead:new Map(),i:0,
+  load(){const r=localStorage.getItem('igf_pool');this.list=r?JSON.parse(r):DEF_PX.slice();$('#proxies').value=this.list.join('\n');},
+  save(){$('#proxies').value=this.list=$('#proxies').value.split('\n').map(s=>s.trim()).filter(Boolean);
+    localStorage.setItem('igf_pool',JSON.stringify(this.list));this.dead.clear();this.state();},
+  alive(){const t=Date.now();return this.list.filter(p=>{const d=this.dead.get(p);return !d||d<t;});},
+  next(){const a=this.alive();if(!a.length)throw new Error('ماكاينش بروكسي حي');
+    const p=a[this.i++%a.length];return p;},
+  kill(p){this.dead.set(p,Date.now()+5*60000);log('☠️ بروكسي محيّد 5د: '+p,'l-warn');this.state();},
+  state(){$('#pxState').textContent=`${this.alive().length}/${this.list.length} حي`;}};
+const buildUrl=(p,t)=>p.includes('?url=')?p+encodeURIComponent(t):p+'?'+t;
+
+async function net(target,opt={}){
+  const method=opt.method||'GET',hIn=opt.headers||{};
+  const normal={},forb={};
+  for(const k in hIn)(FORB.has(k.toLowerCase())?forb:normal)[k]=hIn[k];
+  if(Object.keys(forb).length)normal['x-cors-headers']=JSON.stringify(forb);
+  let last;
+  for(let a=0;a<4;a++){
+    const proxy=POOL.next();
+    try{
+      const r=await fetch(buildUrl(proxy,target),{method,headers:normal,body:opt.body??null});
+      const raw=r.headers.get('cors-received-headers');
+      let hdrs=null,body='',status=r.status;
+      if(raw){try{hdrs=JSON.parse(raw);}catch(e){}}
+      if(hdrs){body=await r.text();}
+      else{
+        const t=await r.text();
+        try{const j=JSON.parse(t);
+          if(j&&typeof j.status==='number'&&'body'in j){status=j.status;body=j.body;hdrs={'set-cookie':j.setCookie||[]};}
+          else body=t;
+        }catch(e){body=t;}
+        if(!hdrs){POOL.kill(proxy);throw new Error('بروكسي ماكايرجعش هيدرز');}
+      }
+      let sc=hdrs['set-cookie']||[];if(typeof sc==='string')sc=[sc];
+      return{status,body,setCookie:sc};
+    }catch(e){last=e;await sleep(400+rnd(800));}
+  }
+  throw last||new Error('شبكة');
+}
+
+/* ══════════ IG ══════════ */
+async function sign(p){
+  const j=JSON.stringify(p);
+  const k=await crypto.subtle.importKey('raw',new TextEncoder().encode(SIG_KEY),{name:'HMAC',hash:'SHA-256'},false,['sign']);
+  const s=await crypto.subtle.sign('HMAC',k,new TextEncoder().encode(j));
+  const h=[...new Uint8Array(s)].map(b=>b.toString(16).padStart(2,'0')).join('');
+  return `signed_body=${h}.${encodeURIComponent(j)}&ig_sig_key_version=4`;
+}
+const ck=j=>Object.entries(j).map(([k,v])=>`${k}=${v}`).join('; ');
+function absorb(jar,arr){for(const l of arr||[]){const f=String(l).split(';')[0],i=f.indexOf('=');
+  if(i>0)jar[f.slice(0,i).trim()]=f.slice(i+1).trim();}}
+
+async function api(method,path,{body,jar}={}){
+  const url=path.startsWith('http')?path:'https://i.instagram.com/api/v1/'+path;
+  const h={'user-agent':UA,'x-ig-app-id':APPID,'x-ig-connection-type':'WIFI',
+    'x-ig-capabilities':'3brTvw==','accept-language':'en-US',
+    'content-type':'application/x-www-form-urlencoded; charset=UTF-8'};
+  if(jar?.csrftoken)h['x-csrftoken']=jar.csrftoken;
+  if(jar&&Object.keys(jar).length)h.cookie=ck(jar);
+  let pl=null;
+  if(body)pl=await sign({...body,_csrftoken:jar?.csrftoken||'',_uuid:uuid(),_uid:jar?.ds_user_id||''});
+  const r=await net(url,{method,headers:h,body:pl});
+  if(jar)absorb(jar,r.setCookie);
+  let json=null;try{json=JSON.parse(r.body);}catch(e){}
+  return{status:r.status,json,raw:r.body};
+}
+
+/* ══════════ بريد ══════════ */
+async function mailbox(domain){
+  const address=`ig${hex(4)}${rnd(9999)}@${domain}`,password=hex(10)+'Aa1!';
+  const c=await fetch(MAIL+'/accounts',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({address,password})});
+  if(!c.ok)throw new Error('mail '+c.status);
+  const t=await fetch(MAIL+'/token',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({address,password})});
+  const tj=await t.json();if(!tj.token)throw new Error('mail token');
+  return{address,token:tj.token};
+}
+async function grabCode(mb,ms=150000){
+  const end=Date.now()+ms;
+  while(Date.now()<end){
+    await sleep(6000);
+    const r=await fetch(MAIL+'/messages',{headers:{authorization:'Bearer '+mb.token}});
+    if(!r.ok)continue;
+    const j=await r.json();
+    for(const m of j['hydra:member']||[]){
+      if(!/instagram|confirm|code|verif/i.test(m.subject+' '+(m.intro||'')))continue;
+      const f=await fetch(MAIL+'/messages/'+m.id,{headers:{authorization:'Bearer '+mb.token}});
+      const full=JSON.stringify(await f.json());
+      const mm=full.match(/\b(\d{6})\b/);if(mm)return mm[1];
+    }
+  }
+  return null;
+}
+
+/* ══════════ أسماء ══════════ */
+const AR=['karim','sara','yassine','nadia','amine','lina','omar','hind','simo','yara','adam','salma','rachid','imane','walid','dounia','anis','kawtar','bilal','malak','ayoub','hana','ilyas','rim','mehdi','nour','zakaria','soukaina','hamza','ghita'];
+const EN=['oliver','mia','leo','zoe','liam','ella','noah','ivy','milo','luna','finn','ruby','ezra','nova','kian','aria','theo','iris','jude','clara'];
+const SUF=['dev','art','xo','pro','tv','lab','hub','zone','plus','me','st','mk','go','mix','app','ly','ify','ster','wave','core','line','hq'];
+const BR=['nord','luma','vex','orbi','kavo','telo','zuno','mira','flux','ryze'];
+const FN=['adam','lina','omar','sara','yassine','hind','milo','nova','zoe','leo','amine','malak','theo','iris','bilal','hana','ezra','luna'];
+
+function genUser(style){
+  let base;
+  if(style==='ar')base=pick(AR);
+  else if(style==='en')base=pick(EN);
+  else if(style==='brand')base=pick(BR)+pick(SUF);
+  else base=pick(Math.random()<.5?AR:EN);
+  const mode=rnd(4);
+  let u=base;
+  if(mode===1)u+=pick(SUF);
+  else if(mode===2)u+='_'+pick(SUF);
+  else if(mode===3)u+='.'+pick(EN);
+  u=u.replace(/\.\./g,'.');
+  u+=rnd(10)<.6?rnd(999):'';
+  u=u.toLowerCase().replace(/[^a-z0-9._]/g,'').slice(0,28);
+  if(u.length<3)u+='x'+rnd(99);
+  return u;
+}
+const genName=()=>pick(FN).replace(/^./,c=>c.toUpperCase())+' '+pick(['','A.','M.','K.']).trim();
+
+/* ══════════ تعليقات ══════════ */
+const STYLES={
+  darija:[
+    '{تبارك الله|ماشاء الله|الله يبارك} عليك 🔥',
+    '{زوينة|خطيرة|نقية} بزاف {والله|بصح|أخويا}',
+    '{تبارك الله|الله يبارك}، {كمل|زيد} هكاك 👏',
+    'واش {هادي|هاد} فين {أخويا|خويا}؟ 👀',
+    '{زوينة|خطيرة} {بزاف|شوية} 😍',
+    '{تبارك الله|ماشاء الله} على {الإبداع|الذوق}',
+    'هادشي {زوين|خطير} {والله|بصح} 💯',
+    '{كمل|زيد} على هاد {الستيل|المستوى} 🙌'
+  ],
+  emoji:['🔥','❤️','😍','👏','💯','🔥🔥','❤️‍🔥','🙌','😮','✨','💥','🤩'],
+  short:['Nice 🔥','زوينة','تبارك الله','جميل','Top','خطيرة','Wa3ra','👌','مزيان'],
+  question:[
+    'شنو {الكاميرا|العدسة} اللي خدامة بها؟ 📷',
+    'فين {هاد البلاصة|الموقع}؟ 🤔',
+    'واش {بغيتي|تقدر} تقول لينا {الإعدادات|البرنامج}؟',
+    '{الكاميرا|الفلتر} شنو؟ 👀',
+    'شحال {من الوقت|ديال الوقت} خديتي فـ هاد {اللقطة|الصورة}؟'
+  ],
+  english:['So clean 🔥','This is 🔥','Amazing shot','Love the vibe','Top tier','Unreal 🔥','Insane detail'],
+  hype:['🔥🔥🔥','💯💯','🚀🚀','❤️‍🔥❤️‍🔥','😮‍💨 هادشي خطير','GOAT 🐐','💥💥']
+};
+function spin(s){return (s||'').replace(/\{([^{}]*)\}/g,(_,g)=>pick(g.split('|'))).trim();}
+function makeComment(){
+  const pool=STYLES[$('#style').value]||STYLES.darija;
+  let c=pick(pool);
+  c=spin(c);
+  const extra=$('#extra').value.split(/[,\s]+/).map(s=>s.trim()).filter(Boolean);
+  if(extra.length&&rnd(10)<6)c+=' '+pick(extra);
+  if(rnd(10)<3)c+=' '+pick(['🔥','❤️','👏','💯','✨']);
+  return c.replace(/\s+/g,' ').trim();
+}
+
+/* ══════════ تحويلات ══════════ */
+const AB='ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_';
+const sc2id=s=>{let v=0n;for(const c of s)v=v*64n+BigInt(AB.indexOf(c));return v.toString();};
+function mediaId(s){
+  s=(s||'').trim();if(/^\d{8,}$/.test(s))return s;
+  const m=s.match(/\/(?:p|reel|tv)\/([A-Za-z0-9_-]{5,})/);
+  return m?sc2id(m[1]):null;
+}
+function usernameOf(s){
+  s=(s||'').trim().replace(/\/+$/,'');
+  if(!s)return null;
+  if(s.includes('instagram.com')){const p=s.split('instagram.com/')[1];if(!p)return null;
+    const seg=p.split(/[/?#]/)[0];
+    if(['p','reel','tv','explore','stories'].includes(seg))return null;
+    return seg.replace(/^@/,'');}
+  return s.replace(/^@/,'').split(/[/?#]/)[0]||null;
+}
+
+/* ══════════ IndexedDB ══════════ */
+const DB={db:null,
+  open(){return new Promise((res,rej)=>{const r=indexedDB.open('igfx',1);
+    r.onupgradeneeded=()=>{const d=r.result;
+      if(!d.objectStoreNames.contains('accs'))d.createObjectStore('accs',{keyPath:'u'});
+      if(!d.objectStoreNames.contains('kv'))d.createObjectStore('kv');};
+    r.onsuccess=()=>{this.db=r.result;res();};r.onerror=()=>rej(r.error);});},
+  st(s,m='readonly'){return this.db.transaction(s,m).objectStore(s);},
+  put(s,v){return new Promise((res,rej)=>{const q=this.st(s,'readwrite').put(v);q.onsuccess=res;q.onerror=()=>rej(q.error);});},
+  del(s,k){return new Promise((res,rej)=>{const q=this.st(s,'readwrite').delete(k);q.onsuccess=res;q.onerror=()=>rej(q.error);});},
+  all(s){return new Promise((res,rej)=>{const q=this.st(s).getAll();q.onsuccess=()=>res(q.result||[]);q.onerror=()=>rej(q.error);});},
+  clear(s){return new Promise((res,rej)=>{const q=this.st(s,'readwrite').clear();q.onsuccess=res;q.onerror=()=>rej(q.error);});},
+  kvGet(k){return new Promise((res,rej)=>{const q=this.st('kv').get(k);q.onsuccess=()=>res(q.result);q.onerror=()=>rej(q.error);});},
+  kvPut(k,v){return this.put('kv',{k,v});}
+};
+
+/* ══════════ حالة ══════════ */
+let ACCS=[], SEEN=new Set(), STAT={ok:0,bad:0,cmt:0,fol:0};
+const saveSoon=(()=>{let t;return()=>{clearTimeout(t);t=setTimeout(()=>{ACCS.forEach(a=>DB.put('accs',a).catch(()=>{}));},250);};})();
+
+function paint(){
+  $('#accN').textContent=ACCS.length;
+  $('#sOk').textContent=STAT.ok;$('#sBad').textContent=STAT.bad;
+  $('#sCmt').textContent=STAT.cmt;$('#sFol').textContent=STAT.fol;
+  $('#sReady').textContent=ACCS.filter(a=>a.st==='ready').length;
+  $('#createHint').textContent='باقي: '+Math.max(0,CRE.left);
+  const b=$('#accB');b.innerHTML='';
+  ACCS.slice().reverse().forEach(a=>{
+    const tr=document.createElement('tr');
+    const now=Date.now();
+    const cls=a.st==='ready'?(a.nextAt&&a.nextAt>now?'cool':'ok'):(a.st==='fail'?'bad':'warn');
+    tr.className=cls;
+    tr.innerHTML=`<td><span class="dot"></span></td>
+      <td>${a.u}<div class="hint">${a.e||''}</div></td>
+      <td class="hint">${a.st==='ready'?(a.nextAt&&a.nextAt>now?'cooldown':(a.cmtToday||0)+'/'+($('#cap').value||15)):a.st}</td>
+      <td><button class="d" data-a="like" data-u="${a.u}">❤</button>
+          <button class="d" data-a="cmt" data-u="${a.u}">💬</button>
+          <button class="d" data-a="fol" data-u="${a.u}">＋</button></td>`;
+    b.appendChild(tr);
+  });
+  saveSoon();
+}
+const byUser=u=>ACCS.find(a=>a.u===u);
+$('#accB').onclick=e=>{const btn=e.target.closest('button');if(!btn)return;
+  const a=byUser(btn.dataset.u);if(!a)return;
+  if(btn.dataset.a==='like')like(a);
+  if(btn.dataset.a==='cmt')comment(a);
+  if(btn.dataset.a==='fol')follow(a);};
+
+/* ══════════ إنشاء ══════════ */
+const CRE={on:false,stop:false,left:0};
+const USED=new Set();
+
+async function createOne(domain){
+  const mb=await mailbox(domain);
+  const jar={};
+  let u;let guard=0;
+  do{u=genUser($('#nameStyle').value);guard++;}while((USED.has(u)||byUser(u))&&guard<12);
+  USED.add(u);
+  const pw=$('#pass').value.trim(),dev='android-'+hex(8);
+  log('📧 '+mb.address);
+
+  const boot=await net('https://www.instagram.com/',{headers:{'user-agent':UA}});
+  absorb(jar,boot.setCookie);
+  if(!jar.csrftoken)await api('GET','qe/sync/',{jar});
+  if(!jar.csrftoken)throw new Error('بلا csrf');
+
+  await api('POST','qe/sync/',{jar,body:{id:dev,experiments:'ig_android_reg_modularization_universe'}});
+  await sleep(700+rnd(1400));
+  await api('POST','users/check_email/',{jar,body:{qe_id:dev,email:mb.address}});
+
+  const r=await api('POST','accounts/create/',{jar,body:{
+    username:u,password:pw,email:mb.address,first_name:genName(),
+    device_id:dev,guid:uuid(),waterfall_id:uuid(),
+    force_sign_up_code:'',qs_stamp:'',sn_nonce:'',sn_result:''}});
+
+  if(r.json?.created_user)return finish(r.json,jar,u,pw,mb.address);
+  const txt=JSON.stringify(r.json||{});
+  if(/signup_block|challenge|checkpoint|too_many/i.test(txt))throw new Error('بلوك '+(r.json?.error_type||r.status));
+
+  log('⏳ كنسنى كود '+u,'l-warn');
+  await api('POST','accounts/send_confirm_email/',{jar,body:{email:mb.address,device_id:dev}}).catch(()=>{});
+  const code=await grabCode(mb);
+  if(!code)throw new Error('بلا كود');
+  const v=await api('POST','accounts/check_confirmation_code/',{jar,body:{email:mb.address,code,device_id:dev}});
+  if(v.json?.created_user)return finish(v.json,jar,u,pw,mb.address);
+  throw new Error('تأكيد فشل '+(v.json?.message||v.status));
+}
+
+async function finish(res,jar,u,pw,email){
+  const me=await api('GET','accounts/current_user/?edit=true',{jar});
+  const acc={u:res.created_user.username||u,pw,e:email,
+    pk:res.created_user.pk||me.json?.user?.pk||null,
+    jar:{...jar},st:'ready',t:Date.now(),cmtToday:0,dayKey:today(),fails:0,nextAt:0};
+  ACCS.push(acc);STAT.ok++;paint();
+  log('✅ '+acc.u,'l-ok');
+  return acc;
+}
+const today=()=>new Date().toISOString().slice(0,10);
+
+$('#start').onclick=async()=>{
+  POOL.save();
+  const dom=$('#domain').value;
+  if(!dom)return log('❌ اختار دومين','l-bad');
+  const target=+$('#count').value;
+  const need=Math.max(0,target-ACCS.filter(a=>a.st==='ready').length);
+  if(!need)return log('✅ العداد واصل أصلاً','l-ok');
+  CRE.on=true;CRE.stop=false;CRE.left=need;
+  $('#start').disabled=true;$('#stop').disabled=false;
+  const d=+$('#delay').value,wave=Math.max(1,+$('#wave').value);
+  setPhase(1);
+  let done=0;
+  while(done<need&&!CRE.stop){
+    const batch=Math.min(wave,need-done);
+    const jobs=[];
+    for(let i=0;i<batch;i++){
+      jobs.push((async()=>{
+        try{await createOne(dom);}
+        catch(e){STAT.bad++;log('❌ '+e.message,'l-bad');}
+        finally{done++;CRE.left=need-done;
+          $('#prog').style.width=(done/need*100)+'%';paint();}
+      })());
+      await sleep(2500+rnd(2500));
+    }
+    await Promise.all(jobs);
+    if(done<need&&!CRE.stop)await sleep(d*1000+rnd(20000));
+  }
+  CRE.on=false;$('#start').disabled=false;$('#stop').disabled=true;
+  $('#prog').style.width='100%';
+  const ready=ACCS.filter(a=>a.st==='ready').length;
+  log(`🏁 ${STAT.ok} خلق / ${STAT.bad} فشل — المجموع الحي: ${ready}`,STAT.ok?'l-ok':'l-bad');
+  if(ready>=1)unlock();
+  beep();
+};
+$('#stop').onclick=()=>{CRE.stop=true;log('⏹ طلب وقف','l-warn');};
+
+/* ══════════ جلسات ══════════ */
+async function alive(a){const r=await api('GET','accounts/current_user/?edit=true',{jar:a.jar});return r.status===200&&!!r.json?.user?.pk;}
+async function revive(a){
+  const jar={};
+  const b=await net('https://www.instagram.com/',{headers:{'user-agent':UA}});
+  absorb(jar,b.setCookie);
+  if(!jar.csrftoken)return false;
+  const r=await api('POST','accounts/login/',{jar,body:{
+    username:a.u,enc_password:'#PWD_INSTAGRAM:0:0:'+a.pw,
+    device_id:'android-'+hex(8),guid:uuid(),login_attempt_count:0}});
+  if(r.json?.logged_in_user){a.jar=jar;a.st='ready';paint();return true;}
+  return false;
+}
+$('#health').onclick=async()=>{
+  log('🔎 فحص '+ACCS.length,'l-warn');
+  for(const a of ACCS.slice()){
+    if(await alive(a)){log('✅ '+a.u,'l-ok');continue;}
+    if(await revive(a)){log('♻️ '+a.u,'l-ok');}
+    else{a.st='fail';paint();log('💀 '+a.u,'l-bad');}
+    await sleep(2500+rnd(3500));
+  }
+  log('🏁 سالا الفحص','l-ok');
+};
+
+/* ══════════ محرك التفاعل ══════════ */
+const ENG={on:false,stop:false,paused:false};
+function readyAcc(){
+  const now=Date.now(),cap=+$('#cap').value||15;
+  const pool=ACCS.filter(a=>{
+    if(a.st!=='ready')return false;
+    if(a.dayKey!==today()){a.dayKey=today();a.cmtToday=0;}
+    if((a.cmtToday||0)>=cap)return false;
+    if((a.nextAt||0)>now)return false;
+    return true;
+  });
+  if(!pool.length)return null;
+  return pool.sort(()=>Math.random()-.5)[0];
+}
+async function ensure(a){
+  if(await alive(a))return true;
+  if(await revive(a)){log('♻️ تحييد '+a.u,'l-ok');return true;}
+  a.st='fail';paint();return false;
+}
+async function guard(a,fn,label){
+  try{const r=await fn(a);
+    if(r.status>=400)throw new Error(r.json?.message||('HTTP '+r.status));
+    return true;
+  }catch(e){a.fails=(a.fails||0)+1;log('⚠️ '+a.u+' '+label+': '+e.message,'l-bad');
+    if(a.fails>=3){a.st='fail';paint();}
+    return false;}
+}
+async function like(a){
+  const mid=mediaId($('#posts').value.split('\n')[0]);
+  if(!mid)return log('❌ بلا منشور','l-bad');
+  if(await guard(a,x=>api('POST',`media/${mid}/like/`,{jar:x.jar}),'لايك'))log('❤️ '+a.u,'l-ok');
+}
+async function comment(a){
+  const posts=$('#posts').value.split('\n').map(mediaId).filter(Boolean);
+  if(!posts.length)return log('❌ حط رابط منشور صحيح','l-bad');
+  const mid=pick(posts);
+  let txt='',tries=0;
+  do{txt=makeComment();tries++;}while(SEEN.has(mid+'|'+a.u+'|'+txt)&&tries<15);
+  SEEN.add(mid+'|'+a.u+'|'+txt);
+  const ok=await guard(a,x=>api('POST',`media/${mid}/comment/`,{jar:x.jar,body:{comment_text:txt}}),'تعليق');
+  if(ok){
+    a.cmtToday=(a.cmtToday||0)+1;
+    a.nextAt=Date.now()+(+$('#cool').value||45)*1000+rnd(25000);
+    a.fails=0;STAT.cmt++;paint();
+    log('💬 '+a.u+' → '+txt,'l-vi');
+  }
+}
+async function follow(a){
+  const un=usernameOf($('#profUrl').value);
+  if(!un)return log('❌ حط رابط بروفيل','l-bad');
+  const inf=await api('GET',`users/${un}/usernameinfo/`,{jar:a.jar});
+  const pk=inf.json?.user?.pk;
+  if(!pk)return log('⚠️ الهدف ماملقاش','l-bad');
+  if(await guard(a,x=>api('POST',`friendships/create/${pk}/`,{jar:x.jar,body:{user_id:pk}}),'فولو')){
+    a.nextAt=Date.now()+30000+rnd(20000);STAT.fol++;paint();log('➕ '+a.u+' → '+un,'l-ok');
+  }
+}
+
+async function worker(id){
+  while(ENG.on&&!ENG.stop){
+    if(ENG.paused){await sleep(1200);continue;}
+    const a=readyAcc();
+    if(!a){await sleep(4000);continue;}
+    if(!(await ensure(a)))continue;
+    await comment(a);
+    await sleep(1500+rnd(2500));
+  }
+}
+async function startEngage(){
+  if(ENG.on)return;
+  const posts=$('#posts').value.split('\n').map(mediaId).filter(Boolean);
+  if(!posts.length)return log('❌ حط على الأقل رابط منشور واحد','l-bad');
+  if(!ACCS.filter(a=>a.st==='ready').length)return log('❌ ماكاينش حساب حي','l-bad');
+  ENG.on=true;ENG.stop=false;ENG.paused=false;
+  setPhase(2);
+  const w=Math.min(5,Math.max(1,+$('#workers').value||1));
+  log(`🚀 بدا التعليق — ${w} عمال`, 'l-vi');
+  await Promise.all(Array.from({length:w},(_,i)=>worker(i)));
+  log('🏁 وقف المحرك','l-ok');
+  ENG.on=false;
+}
+$('#runCmt').onclick=startEngage;
+$('#pause').onclick=()=>{ENG.paused=!ENG.paused;log(ENG.paused?'⏸ توقيف مؤقت':'▶️ كمل','l-warn');};
+$('#stopEng').onclick=()=>{ENG.stop=true;ENG.paused=false;log('⏹ وقف','l-warn');};
+$('#runFol').onclick=async()=>{
+  if(!usernameOf($('#profUrl').value))return log('❌ رابط بروفيل خايب','l-bad');
+  const list=ACCS.filter(a=>a.st==='ready');
+  log('➕ فولو × '+list.length,'l-vi');
+  for(const a of list){if(!(await ensure(a)))continue;await follow(a);await sleep(6000+rnd(6000));}
+  log('🏁 سالا الفولو','l-ok');
+};
+$('#extra').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();startEngage();}});
+$('#profUrl').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();$('#runFol').click();}});
+
+/* ══════════ مراحل ══════════ */
+function unlock(){$('#cEngage').classList.remove('lock');$('#lock1').style.display='none';
+  $('#ph2').classList.add('on');log('🔓 المرحلة 2 محلولة','l-ok');}
+function setPhase(n){$('#ph1').className='ph '+(n===1?'on':'done');
+  $('#ph2').className='ph '+(n===2?'on':'');}
+
+/* ══════════ UI متنوع ══════════ */
+$('#loadDomains').onclick=async()=>{
+  try{const j=await(await fetch(MAIL+'/domains')).json();
+    const d=(j['hydra:member']||[]).filter(x=>x.isActive).map(x=>`<option>${x.domain}</option>`).join('');
+    $('#domain').innerHTML=d||'<option value="">ماكاينش</option>';log('✅ دومينات','l-ok');}
+  catch(e){log('❌ '+e.message,'l-bad');}
+};
+$('#testPx').onclick=async()=>{
+  POOL.save();
+  for(const p of POOL.list){
+    try{const r=await fetch(buildUrl(p,'https://api.mail.tm/domains'));
+      if(r.headers.get('cors-received-headers'))log('✅ '+p,'l-ok');
+      else{POOL.kill(p);log('❌ '+p,'l-bad');}}
+    catch(e){POOL.kill(p);log('❌ '+p,'l-bad');}
+  }
+};
+$('#resetPx').onclick=()=>{localStorage.removeItem('igf_pool');POOL.load();POOL.state();};
+let wl=null;
+$('#wake').onclick=async()=>{
+  try{if(wl){await wl.release();wl=null;$('#wake').textContent='🔆 الشاشة';return;}
+    wl=await navigator.wakeLock.request('screen');
+    $('#wake').textContent='✔ مقفولة';
+    wl.onrelease=()=>{wl=null;$('#wake').textContent='🔆 الشاشة';};}
+  catch(e){log('❌ wake','l-bad');}
+};
+$('#exp').onclick=()=>{
+  const b=new Blob([JSON.stringify(ACCS,null,2)],{type:'application/json'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(b);
+  a.download='igfx_'+today()+'.json';a.click();
+};
+$('#impBtn').onclick=()=>$('#impFile').click();
+$('#impFile').onchange=e=>{
+  const f=e.target.files[0];if(!f)return;
+  const r=new FileReader();
+  r.onload=async()=>{try{
+    const arr=JSON.parse(r.result);
+    for(const a of arr){if(!byUser(a.u)){ACCS.push(a);await DB.put('accs',a);}}
+    paint();log('✅ استيراد '+arr.length,'l-ok');
+  }catch(x){log('❌ JSON خايب','l-bad');}};
+  r.readAsText(f);
+};
+$('#clr').onclick=async()=>{
+  if(!confirm('تحذف كل الحسابات؟'))return;
+  ACCS=[];await DB.clear('accs');paint();log('🗑 مسح','l-warn');
+};
+$('#cap').onchange=paint;
+
+function beep(){
+  try{
+    const c=new (window.AudioContext||window.webkitAudioContext)();
+    const o=c.createOscillator(),g=c.createGain();
+    o.connect(g);g.connect(c.destination);
+    o.frequency.value=880;g.gain.value=.08;
+    o.start();setTimeout(()=>{o.stop();c.close();},220);
+  }catch(e){}
+}
+
+/* ══════════ بووت ══════════ */
+(async()=>{
+  POOL.load();POOL.state();
+  try{
+    await DB.open();
+    ACCS=await DB.all('accs');
+    const seen=await DB.kvGet('seen');
+    if(seen&&seen.v)SEEN=new Set(seen.v);
+  }catch(e){log('⚠️ DB: '+e.message,'l-bad');}
+  ACCS.forEach(a=>{if(a.st==='ready'&&a.dayKey!==today()){a.dayKey=today();a.cmtToday=0;}});
+  paint();
+  if(ACCS.filter(a=>a.st==='ready').length)unlock();
+  log('جاهز — '+ACCS.length+' حساب فـ التخزين','l-mu');
+  setInterval(()=>{if(!ENG.on)paint();},15000);
+  setInterval(()=>{DB.kvPut('seen',{v:[...SEEN].slice(-800)}).catch(()=>{});},20000);
+})();
+</script>
+</body>
+</html>
