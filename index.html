@@ -1,0 +1,920 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>سوقنا — شبكة وسوق إعلانات</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#08080f; --panel:#111120; --panel2:#171729; --line:#242438;
+  --txt:#eef0f8; --mut:#8b90a8; --p1:#7c5cff; --p2:#22d3ee;
+  --ok:#22c55e; --danger:#ef4444; --r:16px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+  font-family:'Cairo',system-ui,sans-serif;background:var(--bg);color:var(--txt);
+  -webkit-font-smoothing:antialiased;overflow-x:hidden;
+}
+body::before{
+  content:'';position:fixed;inset:0;z-index:-1;pointer-events:none;
+  background:
+    radial-gradient(900px 500px at 85% -10%, rgba(124,92,255,.22), transparent 60%),
+    radial-gradient(800px 500px at 10% 110%, rgba(34,211,238,.16), transparent 60%);
+}
+a{color:inherit;text-decoration:none}
+button,input,select,textarea{font-family:inherit;font-size:inherit;color:inherit}
+input,textarea,select{outline:none}
+::-webkit-scrollbar{width:10px;height:10px}
+::-webkit-scrollbar-thumb{background:#2a2a42;border-radius:10px}
+::-webkit-scrollbar-track{background:transparent}
+
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;
+  padding:11px 18px;border-radius:12px;border:1px solid var(--line);
+  background:var(--panel2);cursor:pointer;font-weight:700;font-size:14px;
+  transition:.18s;white-space:nowrap;
+}
+.btn:hover{background:#20203a;transform:translateY(-1px)}
+.btn:active{transform:translateY(0)}
+.btn.primary{
+  background:linear-gradient(135deg,var(--p1),#a855f7);border-color:transparent;
+  box-shadow:0 8px 26px -10px rgba(124,92,255,.85);
+}
+.btn.primary:hover{filter:brightness(1.1)}
+.btn.ghost{background:transparent}
+.btn.danger{background:rgba(239,68,68,.14);border-color:rgba(239,68,68,.4);color:#ffb4b4}
+.btn.sm{padding:7px 12px;font-size:12.5px;border-radius:10px}
+.btn:disabled{opacity:.5;cursor:not-allowed;transform:none}
+
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r)}
+.input{
+  width:100%;padding:12px 14px;border-radius:12px;border:1px solid var(--line);
+  background:#0d0d19;transition:.15s;
+}
+.input:focus{border-color:var(--p1);box-shadow:0 0 0 3px rgba(124,92,255,.16)}
+.label{font-size:12.5px;font-weight:700;color:var(--mut);margin-bottom:6px;display:block}
+.field{margin-bottom:14px}
+
+.avatar{
+  width:42px;height:42px;border-radius:50%;object-fit:cover;flex:0 0 auto;
+  background:linear-gradient(135deg,var(--p1),var(--p2));
+  display:grid;place-items:center;font-weight:900;color:#fff;font-size:16px;
+  border:1px solid rgba(255,255,255,.12);overflow:hidden;
+}
+.avatar.lg{width:96px;height:96px;font-size:38px}
+.avatar.sm{width:32px;height:32px;font-size:13px}
+
+/* ---------- AUTH ---------- */
+#authScreen{min-height:100vh;display:grid;place-items:center;padding:24px}
+.auth-box{width:100%;max-width:430px}
+.brand{display:flex;align-items:center;gap:11px;justify-content:center;margin-bottom:22px}
+.logo{
+  width:44px;height:44px;border-radius:13px;display:grid;place-items:center;
+  background:linear-gradient(135deg,var(--p1),var(--p2));font-weight:900;font-size:22px;color:#fff;
+  box-shadow:0 10px 30px -12px rgba(124,92,255,.9);
+}
+.brand h1{font-size:26px;font-weight:900;letter-spacing:-.5px}
+.brand h1 span{background:linear-gradient(90deg,var(--p1),var(--p2));-webkit-background-clip:text;background-clip:text;color:transparent}
+.auth-card{padding:26px}
+.tabs{display:flex;gap:6px;background:#0c0c17;padding:5px;border-radius:12px;margin-bottom:20px}
+.tabs button{flex:1;padding:10px;border:0;background:transparent;border-radius:9px;font-weight:700;color:var(--mut);cursor:pointer;transition:.15s}
+.tabs button.on{background:var(--panel2);color:var(--txt);box-shadow:0 2px 10px rgba(0,0,0,.4)}
+
+/* ---------- APP ---------- */
+#app{display:none;min-height:100vh}
+header.top{
+  position:sticky;top:0;z-index:60;backdrop-filter:blur(18px);
+  background:rgba(8,8,15,.82);border-bottom:1px solid var(--line);
+}
+.top-in{
+  max-width:1120px;margin:0 auto;padding:11px 16px;
+  display:flex;align-items:center;gap:12px;
+}
+.top-in .logo{width:38px;height:38px;font-size:19px;border-radius:11px}
+.search-wrap{flex:1;max-width:420px;position:relative}
+.search-wrap input{padding-right:38px}
+.search-wrap svg{position:absolute;right:12px;top:50%;transform:translateY(-50%);color:var(--mut)}
+.nav-desk{display:flex;gap:4px;margin-inline-start:auto}
+.nav-desk a{
+  padding:9px 13px;border-radius:11px;font-weight:700;font-size:13.5px;color:var(--mut);transition:.15s;
+  display:flex;align-items:center;gap:6px;
+}
+.nav-desk a:hover{background:var(--panel2);color:var(--txt)}
+.nav-desk a.on{background:rgba(124,92,255,.16);color:#c3b5ff}
+.wrap{max-width:1120px;margin:0 auto;padding:22px 16px 90px;display:grid;grid-template-columns:220px 1fr;gap:22px;align-items:start}
+aside.side{position:sticky;top:76px;display:grid;gap:6px}
+aside.side a{
+  display:flex;align-items:center;gap:11px;padding:11px 13px;border-radius:12px;
+  font-weight:700;font-size:14px;color:var(--mut);transition:.15s;
+}
+aside.side a:hover{background:var(--panel);color:var(--txt)}
+aside.side a.on{background:rgba(124,92,255,.15);color:#c3b5ff}
+.side-card{padding:14px;margin-top:12px}
+.side-card .me{display:flex;gap:10px;align-items:center}
+.side-card .me b{font-size:14px;display:block}
+.side-card .me small{color:var(--mut);font-size:12px}
+
+/* bottom nav mobile */
+.bnav{
+  display:none;position:fixed;bottom:0;left:0;right:0;z-index:70;
+  background:rgba(10,10,20,.95);backdrop-filter:blur(18px);border-top:1px solid var(--line);
+  padding:8px 6px calc(8px + env(safe-area-inset-bottom));
+}
+.bnav-in{display:flex;justify-content:space-around}
+.bnav a{display:grid;place-items:center;gap:3px;padding:6px 14px;border-radius:12px;color:var(--mut);font-size:10.5px;font-weight:700}
+.bnav a.on{color:#c3b5ff;background:rgba(124,92,255,.14)}
+
+/* composer */
+.composer{padding:16px;margin-bottom:18px}
+.composer textarea{
+  width:100%;border:0;background:transparent;resize:none;font-size:15.5px;line-height:1.7;
+  min-height:64px;
+}
+.composer-bar{display:flex;align-items:center;gap:8px;margin-top:10px;padding-top:12px;border-top:1px solid var(--line);flex-wrap:wrap}
+.chip{
+  display:inline-flex;align-items:center;gap:7px;padding:8px 13px;border-radius:11px;
+  background:var(--panel2);border:1px solid var(--line);cursor:pointer;font-size:13px;font-weight:700;transition:.15s;
+}
+.chip:hover{background:#20203a}
+.preview{position:relative;margin-top:12px;border-radius:12px;overflow:hidden;border:1px solid var(--line)}
+.preview img,.preview video{width:100%;max-height:340px;object-fit:cover;display:block}
+.preview .x{
+  position:absolute;top:8px;left:8px;width:30px;height:30px;border-radius:50%;border:0;
+  background:rgba(0,0,0,.72);color:#fff;cursor:pointer;font-size:16px;display:grid;place-items:center;
+}
+
+/* post */
+.post{padding:16px;margin-bottom:16px;animation:pop .32s ease both}
+@keyframes pop{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+.post-head{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.post-head .who{flex:1;min-width:0}
+.post-head b{font-size:14.5px;display:block}
+.post-head small{color:var(--mut);font-size:12px}
+.post-body{font-size:15.5px;line-height:1.85;white-space:pre-wrap;word-break:break-word}
+.post-media{margin-top:12px;border-radius:13px;overflow:hidden;border:1px solid var(--line)}
+.post-media img,.post-media video{width:100%;max-height:560px;object-fit:cover;display:block}
+.post-actions{display:flex;gap:6px;margin-top:13px;padding-top:12px;border-top:1px solid var(--line)}
+.act{
+  display:inline-flex;align-items:center;gap:7px;padding:8px 14px;border-radius:11px;
+  border:0;background:transparent;color:var(--mut);cursor:pointer;font-weight:700;font-size:13px;transition:.15s;
+}
+.act:hover{background:var(--panel2);color:var(--txt)}
+.act.on{color:#ff6b9d}
+.act.on svg{fill:#ff6b9d}
+.comments{margin-top:12px;display:grid;gap:10px}
+.comment{display:flex;gap:9px}
+.comment .bubble{background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:9px 12px;flex:1}
+.comment .bubble b{font-size:12.5px;display:block;margin-bottom:2px}
+.comment .bubble p{font-size:13.5px;line-height:1.6;word-break:break-word}
+.comment-form{display:flex;gap:8px;margin-top:4px}
+
+/* market */
+.filters{display:flex;gap:8px;overflow-x:auto;padding-bottom:6px;margin-bottom:16px}
+.filters button{
+  padding:9px 16px;border-radius:11px;border:1px solid var(--line);background:var(--panel);
+  cursor:pointer;font-weight:700;font-size:13px;white-space:nowrap;transition:.15s;
+}
+.filters button.on{background:linear-gradient(135deg,var(--p1),#a855f7);border-color:transparent}
+.grid-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:14px}
+.lcard{overflow:hidden;cursor:pointer;transition:.2s;animation:pop .3s ease both}
+.lcard:hover{transform:translateY(-3px);border-color:rgba(124,92,255,.5)}
+.lcard .thumb{aspect-ratio:4/3;background:#0d0d19;display:grid;place-items:center;color:#333;overflow:hidden}
+.lcard .thumb img{width:100%;height:100%;object-fit:cover}
+.lcard .info{padding:11px 13px}
+.lcard .info h4{font-size:14px;margin-bottom:5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.price{font-weight:900;color:#7dffc0;font-size:15px}
+.lcard .meta{display:flex;justify-content:space-between;color:var(--mut);font-size:11.5px;margin-top:6px}
+
+/* profile */
+.prof-cover{height:130px;border-radius:var(--r);background:linear-gradient(135deg,rgba(124,92,255,.5),rgba(34,211,238,.35));position:relative;margin-bottom:-48px}
+.prof-head{padding:0 20px 20px;position:relative}
+.prof-head .avatar{border:4px solid var(--panel);margin-bottom:10px}
+.prof-stats{display:flex;gap:20px;margin:14px 0}
+.prof-stats div{text-align:center}
+.prof-stats b{display:block;font-size:17px}
+.prof-stats small{color:var(--mut);font-size:11.5px}
+
+/* modal */
+.overlay{
+  position:fixed;inset:0;z-index:200;background:rgba(4,4,10,.8);backdrop-filter:blur(6px);
+  display:grid;place-items:center;padding:16px;overflow-y:auto;
+}
+.modal{
+  width:100%;max-width:560px;background:var(--panel);border:1px solid var(--line);
+  border-radius:18px;padding:22px;animation:pop .25s ease both;max-height:92vh;overflow-y:auto;
+}
+.modal h3{font-size:18px;margin-bottom:16px;display:flex;justify-content:space-between;align-items:center}
+.modal .x{border:0;background:var(--panel2);width:32px;height:32px;border-radius:50%;cursor:pointer;color:var(--mut);font-size:16px}
+
+/* toast */
+#toastRoot{position:fixed;bottom:80px;left:50%;transform:translateX(-50%);z-index:400;display:grid;gap:8px}
+.toast{
+  padding:12px 20px;border-radius:12px;background:#1c1c2e;border:1px solid var(--line);
+  font-weight:700;font-size:13.5px;box-shadow:0 12px 40px rgba(0,0,0,.6);animation:pop .2s ease both;
+}
+.toast.err{background:rgba(239,68,68,.16);border-color:rgba(239,68,68,.5);color:#ffc4c4}
+.toast.ok{background:rgba(34,197,94,.16);border-color:rgba(34,197,94,.5);color:#b6ffcf}
+
+.empty{text-align:center;padding:52px 20px;color:var(--mut)}
+.empty svg{opacity:.35;margin-bottom:14px}
+.sk{background:linear-gradient(90deg,#151526,#1d1d33,#151526);background-size:200% 100%;animation:sh 1.3s infinite;border-radius:10px}
+@keyframes sh{to{background-position:-200% 0}}
+
+@media(max-width:860px){
+  .wrap{grid-template-columns:1fr;padding-bottom:96px}
+  aside.side{display:none}
+  .nav-desk{display:none}
+  .bnav{display:block}
+  .grid-list{grid-template-columns:repeat(2,1fr)}
+}
+</style>
+</head>
+<body>
+
+<!-- ================= AUTH ================= -->
+<div id="authScreen">
+  <div class="auth-box">
+    <div class="brand">
+      <div class="logo">س</div>
+      <h1>سوق<span>نا</span></h1>
+    </div>
+    <div class="card auth-card">
+      <div class="tabs">
+        <button id="tabLogin" class="on">دخول</button>
+        <button id="tabSignup">حساب جديد</button>
+      </div>
+
+      <form id="loginForm">
+        <div class="field">
+          <label class="label">البريد الإلكتروني</label>
+          <input class="input" type="email" id="liEmail" required placeholder="you@mail.com">
+        </div>
+        <div class="field">
+          <label class="label">كلمة السر</label>
+          <input class="input" type="password" id="liPass" required placeholder="••••••••">
+        </div>
+        <button class="btn primary" style="width:100%" type="submit">دخول</button>
+      </form>
+
+      <form id="signupForm" hidden>
+        <div class="field">
+          <label class="label">اسم المستخدم</label>
+          <input class="input" id="suUser" required placeholder="username" pattern="[a-zA-Z0-9_.]{3,20}">
+        </div>
+        <div class="field">
+          <label class="label">الاسم الكامل</label>
+          <input class="input" id="suName" required placeholder="الاسم الكامل">
+        </div>
+        <div class="field">
+          <label class="label">البريد الإلكتروني</label>
+          <input class="input" type="email" id="suEmail" required placeholder="you@mail.com">
+        </div>
+        <div class="field">
+          <label class="label">كلمة السر (6 حروف على الأقل)</label>
+          <input class="input" type="password" id="suPass" required minlength="6" placeholder="••••••••">
+        </div>
+        <button class="btn primary" style="width:100%" type="submit">إنشاء الحساب</button>
+      </form>
+    </div>
+    <p style="text-align:center;color:var(--mut);font-size:12px;margin-top:16px">
+      مشروع تجريبي — بياناتك محفوظة فـ Supabase
+    </p>
+  </div>
+</div>
+
+<!-- ================= APP ================= -->
+<div id="app">
+  <header class="top">
+    <div class="top-in">
+      <a href="#/feed" class="logo">س</a>
+      <div class="search-wrap">
+        <input class="input" id="searchInput" placeholder="قلب على ناس...">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+      </div>
+      <nav class="nav-desk">
+        <a href="#/feed" data-nav="feed">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 10 12 3l9 7v10a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1z"/></svg>
+          الرئيسية
+        </a>
+        <a href="#/market" data-nav="market">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9h18l-1.5 11a1 1 0 0 1-1 1H5.5a1 1 0 0 1-1-1z"/><path d="M8 9V6a4 4 0 0 1 8 0v3"/></svg>
+          الماركت
+        </a>
+        <a href="#/me" data-nav="me">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>
+          بروفايلي
+        </a>
+        <button class="btn sm ghost" id="logoutBtn">خروج</button>
+      </nav>
+    </div>
+  </header>
+
+  <div class="wrap">
+    <aside class="side">
+      <a href="#/feed" data-nav="feed">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 10 12 3l9 7v10a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1z"/></svg>
+        الرئيسية
+      </a>
+      <a href="#/market" data-nav="market">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9h18l-1.5 11a1 1 0 0 1-1 1H5.5a1 1 0 0 1-1-1z"/><path d="M8 9V6a4 4 0 0 1 8 0v3"/></svg>
+        الماركت بليس
+      </a>
+      <a href="#/me" data-nav="me">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>
+        بروفايلي
+      </a>
+      <div class="card side-card">
+        <div class="me">
+          <div class="avatar sm" id="sideAvatar"></div>
+          <div style="min-width:0">
+            <b id="sideName"></b>
+            <small id="sideUser"></small>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <main id="view"></main>
+  </div>
+
+  <nav class="bnav">
+    <div class="bnav-in">
+      <a href="#/feed" data-nav="feed">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 10 12 3l9 7v10a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1z"/></svg>
+        الرئيسية
+      </a>
+      <a href="#/market" data-nav="market">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9h18l-1.5 11a1 1 0 0 1-1 1H5.5a1 1 0 0 1-1-1z"/><path d="M8 9V6a4 4 0 0 1 8 0v3"/></svg>
+        الماركت
+      </a>
+      <a href="#/me" data-nav="me">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>
+        أنا
+      </a>
+    </div>
+  </nav>
+</div>
+
+<div id="modalRoot"></div>
+<div id="toastRoot"></div>
+
+<script type="module">
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+
+const SUPA_URL = 'https://vxzkyydoeyvpsevllouv.supabase.co';
+const SUPA_KEY = 'sb_publishable_oR8wLT872aQ5MWcKLmJVbQ_uesOIK7i';
+const sb = createClient(SUPA_URL, SUPA_KEY);
+
+const S = { me: null, prof: null, cat: 'all' };
+const $ = s => document.querySelector(s);
+const view = $('#view');
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+function toast(msg, kind=''){
+  const d = document.createElement('div');
+  d.className = 'toast ' + kind; d.textContent = msg;
+  $('#toastRoot').appendChild(d);
+  setTimeout(()=>{ d.style.opacity='0'; d.style.transition='.3s'; setTimeout(()=>d.remove(),300); }, 2600);
+}
+function timeAgo(iso){
+  const s = Math.floor((Date.now() - new Date(iso)) / 1000);
+  if (s < 60) return 'دابا';
+  if (s < 3600) return Math.floor(s/60) + ' د';
+  if (s < 86400) return Math.floor(s/3600) + ' سا';
+  if (s < 604800) return Math.floor(s/86400) + ' ي';
+  return new Date(iso).toLocaleDateString('ar-MA');
+}
+function avatarHTML(p, cls=''){
+  if (p?.avatar_url) return `<img class="avatar ${cls}" src="${esc(p.avatar_url)}" alt="">`;
+  const ini = (p?.full_name || p?.username || '?').trim().charAt(0).toUpperCase();
+  return `<div class="avatar ${cls}">${esc(ini)}</div>`;
+}
+function openModal(html){
+  const o = document.createElement('div');
+  o.className = 'overlay';
+  o.innerHTML = `<div class="modal">${html}</div>`;
+  o.addEventListener('click', e => { if (e.target === o) o.remove(); });
+  $('#modalRoot').appendChild(o);
+  o.querySelectorAll('[data-close]').forEach(b => b.onclick = () => o.remove());
+  return o;
+}
+async function uploadFile(file, bucket){
+  const ext = (file.name.split('.').pop() || 'bin').toLowerCase();
+  const path = `${S.me.id}/${crypto.randomUUID()}.${ext}`;
+  const { error } = await sb.storage.from(bucket).upload(path, file, { cacheControl: '31536000' });
+  if (error) throw error;
+  return sb.storage.from(bucket).getPublicUrl(path).data.publicUrl;
+}
+
+/* ---------------- AUTH ---------------- */
+$('#tabLogin').onclick = () => {
+  $('#tabLogin').classList.add('on'); $('#tabSignup').classList.remove('on');
+  $('#loginForm').hidden = false; $('#signupForm').hidden = true;
+};
+$('#tabSignup').onclick = () => {
+  $('#tabSignup').classList.add('on'); $('#tabLogin').classList.remove('on');
+  $('#signupForm').hidden = false; $('#loginForm').hidden = true;
+};
+
+$('#loginForm').onsubmit = async e => {
+  e.preventDefault();
+  const b = e.submitter; if (b) b.disabled = true;
+  const { error } = await sb.auth.signInWithPassword({
+    email: $('#liEmail').value.trim(), password: $('#liPass').value
+  });
+  if (b) b.disabled = false;
+  if (error) return toast(error.message, 'err');
+  toast('مرحبا بيك', 'ok');
+};
+
+$('#signupForm').onsubmit = async e => {
+  e.preventDefault();
+  const b = e.submitter; if (b) b.disabled = true;
+  const username = $('#suUser').value.trim().toLowerCase();
+
+  const { data: ex } = await sb.from('profiles').select('id').eq('username', username).maybeSingle();
+  if (ex) { b.disabled = false; return toast('اسم المستخدم مستعمل', 'err'); }
+
+  const { error } = await sb.auth.signUp({
+    email: $('#suEmail').value.trim(),
+    password: $('#suPass').value,
+    options: { data: { username, full_name: $('#suName').value.trim() } }
+  });
+  if (b) b.disabled = false;
+  if (error) return toast(error.message, 'err');
+  toast('تصاوب الحساب', 'ok');
+};
+
+$('#logoutBtn').onclick = async () => { await sb.auth.signOut(); location.hash = '#/feed'; };
+
+/* ---------------- BOOT ---------------- */
+sb.auth.onAuthStateChange(async (ev, session) => {
+  if (!session) {
+    S.me = null; S.prof = null;
+    $('#app').style.display = 'none';
+    $('#authScreen').style.display = 'grid';
+    return;
+  }
+  S.me = session.user;
+  const { data } = await sb.from('profiles').select('*').eq('id', session.user.id).maybeSingle();
+  S.prof = data;
+  if (data?.is_banned) {
+    $('#app').style.display = 'none';
+    $('#authScreen').style.display = 'grid';
+    $('#loginForm').hidden = true; $('#signupForm').hidden = true;
+    $('#tabLogin').parentElement.style.display = 'none';
+    toast('الحساب موقوف', 'err');
+    return;
+  }
+  $('#authScreen').style.display = 'none';
+  $('#app').style.display = 'block';
+  $('#sideAvatar').outerHTML = avatarHTML(data, 'sm').replace('class="avatar sm"', 'class="avatar sm" id="sideAvatar"');
+  $('#sideName').textContent = data?.full_name || data?.username || '';
+  $('#sideUser').textContent = '@' + (data?.username || '');
+  if (!location.hash) location.hash = '#/feed';
+  router();
+});
+
+/* ---------------- ROUTER ---------------- */
+window.addEventListener('hashchange', router);
+$('#searchInput').addEventListener('keydown', e => {
+  if (e.key === 'Enter' && e.target.value.trim()) location.hash = '#/search/' + encodeURIComponent(e.target.value.trim());
+});
+
+function setNav(k){
+  document.querySelectorAll('[data-nav]').forEach(a => a.classList.toggle('on', a.dataset.nav === k));
+}
+
+async function router(){
+  if (!S.me) return;
+  const h = location.hash || '#/feed';
+  const [, seg, arg] = h.split('/');
+  setNav(seg);
+  if (seg === 'market') return renderMarket();
+  if (seg === 'me') return renderProfile(S.prof.username);
+  if (seg === 'profile') return renderProfile(decodeURIComponent(arg || ''));
+  if (seg === 'search') return renderSearch(decodeURIComponent(arg || ''));
+  return renderFeed();
+}
+
+/* ---------------- FEED ---------------- */
+function composerHTML(){
+  return `
+  <div class="card composer">
+    <div style="display:flex;gap:10px">
+      ${avatarHTML(S.prof)}
+      <textarea id="postText" placeholder="شنو كاين اليوم؟"></textarea>
+    </div>
+    <div id="prev"></div>
+    <div class="composer-bar">
+      <label class="chip">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>
+        صورة
+        <input type="file" id="fileImg" accept="image/*" hidden>
+      </label>
+      <label class="chip">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m23 7-7 5 7 5z"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>
+        فيديو
+        <input type="file" id="fileVid" accept="video/*" hidden>
+      </label>
+      <button class="btn primary sm" id="publishBtn" style="margin-inline-start:auto">نشر</button>
+    </div>
+  </div>`;
+}
+
+let pickedFile = null;
+
+function bindComposer(){
+  const pv = $('#prev');
+  const setFile = f => {
+    pickedFile = f;
+    if (!f) { pv.innerHTML = ''; return; }
+    const url = URL.createObjectURL(f);
+    pv.innerHTML = `<div class="preview">${f.type.startsWith('video')
+      ? `<video src="${url}" controls></video>`
+      : `<img src="${url}">`}<button class="x">✕</button></div>`;
+    pv.querySelector('.x').onclick = () => { pickedFile = null; pv.innerHTML = ''; };
+  };
+  $('#fileImg').onchange = e => setFile(e.target.files[0]);
+  $('#fileVid').onchange = e => setFile(e.target.files[0]);
+
+  $('#publishBtn').onclick = async () => {
+    const text = $('#postText').value.trim();
+    if (!text && !pickedFile) return toast('كتب شي حاجة', 'err');
+    const btn = $('#publishBtn'); btn.disabled = true; btn.textContent = 'نشر...';
+    try {
+      let media_url = null, media_type = null;
+      if (pickedFile) {
+        media_url = await uploadFile(pickedFile, 'posts');
+        media_type = pickedFile.type.startsWith('video') ? 'video' : 'image';
+      }
+      const { error } = await sb.from('posts').insert({ user_id: S.me.id, content: text, media_url, media_type });
+      if (error) throw error;
+      pickedFile = null;
+      toast('تنشر', 'ok');
+      renderFeed();
+    } catch (err) { toast(err.message, 'err'); btn.disabled = false; btn.textContent = 'نشر'; }
+  };
+}
+
+async function renderFeed(){
+  view.innerHTML = composerHTML() + '<div id="feedList"><div class="sk" style="height:140px;margin-bottom:14px"></div><div class="sk" style="height:140px"></div></div>';
+  bindComposer();
+
+  const { data, error } = await sb.from('posts')
+    .select('*, author:profiles!posts_user_id_fkey(id,username,full_name,avatar_url), post_likes(user_id), comments(count)')
+    .order('created_at', { ascending: false }).limit(40);
+
+  const list = $('#feedList');
+  if (error) { list.innerHTML = `<div class="empty">${esc(error.message)}</div>`; return; }
+  if (!data?.length) {
+    list.innerHTML = `<div class="empty">
+      <svg width="46" height="46" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="4" width="18" height="16" rx="3"/><path d="M7 9h10M7 13h6"/></svg>
+      <p>ما كاين حتى منشور. بدا أنت!</p></div>`;
+    return;
+  }
+  list.innerHTML = data.map(p => postHTML(p)).join('');
+  bindPostActions(data);
+}
+
+function postHTML(p){
+  const liked = p.post_likes?.some(l => l.user_id === S.me.id);
+  const nLikes = p.post_likes?.length || 0;
+  const nCom = p.comments?.[0]?.count || 0;
+  return `
+  <article class="card post" data-post="${p.id}">
+    <div class="post-head">
+      <a href="#/profile/${encodeURIComponent(p.author.username)}">${avatarHTML(p.author)}</a>
+      <div class="who">
+        <a href="#/profile/${encodeURIComponent(p.author.username)}"><b>${esc(p.author.full_name || p.author.username)}</b></a>
+        <small>@${esc(p.author.username)} · ${timeAgo(p.created_at)}</small>
+      </div>
+      ${p.user_id === S.me.id ? `<button class="btn sm ghost del-post" data-id="${p.id}">🗑</button>` : ''}
+    </div>
+    ${p.content ? `<div class="post-body">${esc(p.content)}</div>` : ''}
+    ${p.media_url ? `<div class="post-media">${p.media_type === 'video'
+      ? `<video src="${esc(p.media_url)}" controls playsinline></video>`
+      : `<img src="${esc(p.media_url)}" loading="lazy" alt="">`}</div>` : ''}
+    <div class="post-actions">
+      <button class="act like ${liked ? 'on' : ''}" data-id="${p.id}">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1-1.1a5.5 5.5 0 0 0-7.8 7.8l1 1.1L12 21l7.8-7.5 1-1.1a5.5 5.5 0 0 0 0-7.8z"/></svg>
+        <span class="nlike">${nLikes}</span>
+      </button>
+      <button class="act toggle-com" data-id="${p.id}">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.4 8.4 0 0 1-9 8.4 8.5 8.5 0 0 1-3.8-.9L3 21l1.9-5.1A8.4 8.4 0 0 1 12 3a8.4 8.4 0 0 1 9 8.5z"/></svg>
+        <span>${nCom}</span>
+      </button>
+    </div>
+    <div class="comments" data-comments="${p.id}" hidden></div>
+  </article>`;
+}
+
+function bindPostActions(posts){
+  document.querySelectorAll('.like').forEach(b => {
+    b.onclick = async () => {
+      const id = b.dataset.id;
+      const on = b.classList.contains('on');
+      b.classList.toggle('on');
+      const n = b.querySelector('.nlike');
+      n.textContent = (+n.textContent || 0) + (on ? -1 : 1);
+      if (on) await sb.from('post_likes').delete().match({ post_id: id, user_id: S.me.id });
+      else await sb.from('post_likes').insert({ post_id: id, user_id: S.me.id });
+    };
+  });
+
+  document.querySelectorAll('.del-post').forEach(b => {
+    b.onclick = async () => {
+      if (!confirm('تحذف هاد المنشور؟')) return;
+      await sb.from('posts').delete().eq('id', b.dataset.id);
+      toast('تحذف', 'ok'); router();
+    };
+  });
+
+  document.querySelectorAll('.toggle-com').forEach(b => {
+    b.onclick = async () => {
+      const id = b.dataset.id;
+      const box = document.querySelector(`[data-comments="${id}"]`);
+      if (!box.hidden) { box.hidden = true; return; }
+      box.hidden = false;
+      box.innerHTML = '<div class="sk" style="height:44px"></div>';
+      const { data } = await sb.from('comments')
+        .select('*, author:profiles!comments_user_id_fkey(id,username,full_name,avatar_url)')
+        .eq('post_id', id).order('created_at').limit(50);
+      box.innerHTML = (data || []).map(c => `
+        <div class="comment">
+          ${avatarHTML(c.author, 'sm')}
+          <div class="bubble">
+            <b>${esc(c.author.full_name || c.author.username)}</b>
+            <p>${esc(c.content)}</p>
+          </div>
+        </div>`).join('') + `
+        <form class="comment-form">
+          <input class="input" placeholder="كتب تعليق..." required maxlength="500">
+          <button class="btn primary sm">إرسال</button>
+        </form>`;
+      box.querySelector('form').onsubmit = async e => {
+        e.preventDefault();
+        const inp = e.target.querySelector('input');
+        const { error } = await sb.from('comments').insert({ post_id: id, user_id: S.me.id, content: inp.value.trim() });
+        if (error) return toast(error.message, 'err');
+        b.click(); b.click();
+      };
+    };
+  });
+}
+
+/* ---------------- MARKET ---------------- */
+const CATS = [
+  ['all','الكل'], ['cars','سيارات'], ['phones','تيليفونات'], ['electronics','إلكترونيك'],
+  ['furniture','أثاث'], ['clothes','حوايج'], ['realestate','عقار'], ['services','خدمات'], ['other','أخرى']
+];
+
+async function renderMarket(){
+  view.innerHTML = `
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;gap:10px">
+      <h2 style="font-size:21px">الماركت بليس</h2>
+      <button class="btn primary sm" id="newListing">+ إعلان جديد</button>
+    </div>
+    <div class="filters">${CATS.map(([v,l]) =>
+      `<button data-cat="${v}" class="${S.cat===v?'on':''}">${l}</button>`).join('')}</div>
+    <div id="lstGrid" class="grid-list">
+      <div class="sk" style="aspect-ratio:4/3"></div><div class="sk" style="aspect-ratio:4/3"></div>
+    </div>`;
+
+  $('#newListing').onclick = listingModal;
+  view.querySelectorAll('[data-cat]').forEach(b => b.onclick = () => {
+    S.cat = b.dataset.cat; renderMarket();
+  });
+
+  let q = sb.from('listings')
+    .select('*, seller:profiles!listings_user_id_fkey(id,username,full_name,avatar_url)')
+    .eq('status', 'active').order('created_at', { ascending: false }).limit(60);
+  if (S.cat !== 'all') q = q.eq('category', S.cat);
+
+  const { data, error } = await q;
+  const g = $('#lstGrid');
+  if (error) { g.innerHTML = `<div class="empty">${esc(error.message)}</div>`; return; }
+  if (!data?.length) {
+    g.innerHTML = `<div class="empty" style="grid-column:1/-1">
+      <svg width="46" height="46" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 9h18l-1.5 11a1 1 0 0 1-1 1H5.5a1 1 0 0 1-1-1z"/><path d="M8 9V6a4 4 0 0 1 8 0v3"/></svg>
+      <p>ما كاين حتى إعلان فهاد القسم</p></div>`;
+    return;
+  }
+  g.innerHTML = data.map(l => `
+    <article class="card lcard" data-lid="${l.id}">
+      <div class="thumb">${l.images?.[0]
+        ? `<img src="${esc(l.images[0])}" loading="lazy" alt="">`
+        : `<svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>`}</div>
+      <div class="info">
+        <h4>${esc(l.title)}</h4>
+        <div class="price">${l.price != null ? esc(l.price) + ' د.م' : 'على السوم'}</div>
+        <div class="meta"><span>${esc(l.city || '—')}</span><span>${timeAgo(l.created_at)}</span></div>
+      </div>
+    </article>`).join('');
+  g.querySelectorAll('[data-lid]').forEach(c => c.onclick = () => listingDetail(c.dataset.lid));
+}
+
+function listingModal(){
+  const o = openModal(`
+    <h3>إعلان جديد <button class="x" data-close>✕</button></h3>
+    <div class="field"><label class="label">العنوان</label>
+      <input class="input" id="ltTitle" maxlength="80" placeholder="مثلاً: رينو كليو 2018"></div>
+    <div class="field"><label class="label">القسم</label>
+      <select class="input" id="ltCat">${CATS.filter(c=>c[0]!=='all').map(([v,l])=>`<option value="${v}">${l}</option>`).join('')}</select></div>
+    <div class="field"><label class="label">الثمن (د.م) — خليه خاوي إلا على السوم</label>
+      <input class="input" id="ltPrice" type="number" min="0" step="1"></div>
+    <div class="field"><label class="label">المدينة</label>
+      <input class="input" id="ltCity" placeholder="الدار البيضاء..."></div>
+    <div class="field"><label class="label">رقم الهاتف (اختياري)</label>
+      <input class="input" id="ltPhone" placeholder="06xxxxxxxx"></div>
+    <div class="field"><label class="label">الوصف</label>
+      <textarea class="input" id="ltDesc" rows="4" placeholder="وصف المنتوج أو السيارة..."></textarea></div>
+    <div class="field"><label class="label">الصور (حتى 4)</label>
+      <input class="input" type="file" id="ltImgs" accept="image/*" multiple></div>
+    <button class="btn primary" style="width:100%" id="ltSave">نشر الإعلان</button>`);
+
+  o.querySelector('#ltSave').onclick = async e => {
+    const title = o.querySelector('#ltTitle').value.trim();
+    if (!title) return toast('العنوان خاوي', 'err');
+    const btn = e.target; btn.disabled = true; btn.textContent = 'نشر...';
+    try {
+      const files = [...o.querySelector('#ltImgs').files].slice(0, 4);
+      const images = [];
+      for (const f of files) images.push(await uploadFile(f, 'listings'));
+      const price = o.querySelector('#ltPrice').value;
+      const { error } = await sb.from('listings').insert({
+        user_id: S.me.id, title,
+        category: o.querySelector('#ltCat').value,
+        price: price ? Number(price) : null,
+        city: o.querySelector('#ltCity').value.trim() || null,
+        phone: o.querySelector('#ltPhone').value.trim() || null,
+        description: o.querySelector('#ltDesc').value.trim(),
+        images
+      });
+      if (error) throw error;
+      o.remove(); toast('تنشر الإعلان', 'ok'); renderMarket();
+    } catch (err) { toast(err.message, 'err'); btn.disabled = false; btn.textContent = 'نشر الإعلان'; }
+  };
+}
+
+async function listingDetail(id){
+  const { data: l } = await sb.from('listings')
+    .select('*, seller:profiles!listings_user_id_fkey(id,username,full_name,avatar_url,city)')
+    .eq('id', id).maybeSingle();
+  if (!l) return toast('ما لقيتش الإعلان', 'err');
+  const mine = l.user_id === S.me.id;
+  const o = openModal(`
+    <h3>${esc(l.title)} <button class="x" data-close>✕</button></h3>
+    ${l.images?.length ? `<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px">
+      ${l.images.map(u=>`<img src="${esc(u)}" style="width:100%;aspect-ratio:1;object-fit:cover;border-radius:11px">`).join('')}</div>`:''}
+    <div style="font-size:22px;font-weight:900;color:#7dffc0;margin-bottom:10px">${l.price != null ? esc(l.price)+' د.م' : 'على السوم'}</div>
+    <p style="color:var(--mut);font-size:13px;margin-bottom:12px">📍 ${esc(l.city||'—')} · ${timeAgo(l.created_at)}</p>
+    <p style="line-height:1.9;white-space:pre-wrap;margin-bottom:16px">${esc(l.description||'بلا وصف')}</p>
+    <div style="display:flex;gap:10px;align-items:center;padding:12px;background:var(--panel2);border-radius:12px;margin-bottom:14px">
+      ${avatarHTML(l.seller)}
+      <div style="flex:1"><b>${esc(l.seller.full_name||l.seller.username)}</b><br><small style="color:var(--mut)">@${esc(l.seller.username)}</small></div>
+      <a class="btn sm" href="#/profile/${encodeURIComponent(l.seller.username)}" data-close>البروفايل</a>
+    </div>
+    ${l.phone ? `<a class="btn primary" style="width:100%" href="tel:${esc(l.phone)}">📞 ${esc(l.phone)}</a>` : ''}
+    ${mine ? `<div style="display:flex;gap:8px;margin-top:10px">
+      <button class="btn sm" id="markSold" style="flex:1">${l.status==='sold'?'رجعو نشط':'علّمو مباع'}</button>
+      <button class="btn sm danger" id="delLst" style="flex:1">حذف</button></div>`:''}`);
+
+  if (mine) {
+    o.querySelector('#markSold').onclick = async () => {
+      await sb.from('listings').update({ status: l.status === 'sold' ? 'active' : 'sold' }).eq('id', id);
+      o.remove(); renderMarket();
+    };
+    o.querySelector('#delLst').onclick = async () => {
+      if (!confirm('تحذف الإعلان؟')) return;
+      await sb.from('listings').delete().eq('id', id);
+      o.remove(); toast('تحذف', 'ok'); renderMarket();
+    };
+  }
+}
+
+/* ---------------- PROFILE ---------------- */
+async function renderProfile(username){
+  view.innerHTML = '<div class="sk" style="height:230px"></div>';
+  const { data: p } = await sb.from('profiles').select('*').eq('username', username).maybeSingle();
+  if (!p) { view.innerHTML = '<div class="empty">ما لقيتش هاد المستخدم</div>'; return; }
+
+  const mine = p.id === S.me.id;
+  const [{ count: nPosts }, { count: nFol }, { count: nFing }, { data: isFol }] = await Promise.all([
+    sb.from('posts').select('*', { count: 'exact', head: true }).eq('user_id', p.id),
+    sb.from('follows').select('*', { count: 'exact', head: true }).eq('following_id', p.id),
+    sb.from('follows').select('*', { count: 'exact', head: true }).eq('follower_id', p.id),
+    sb.from('follows').select('follower_id').match({ follower_id: S.me.id, following_id: p.id }).maybeSingle()
+  ]);
+
+  view.innerHTML = `
+    <div class="prof-cover"></div>
+    <div class="card prof-head">
+      ${avatarHTML(p, 'lg')}
+      <div style="display:flex;justify-content:space-between;align-items:start;gap:10px">
+        <div>
+          <h2 style="font-size:19px">${esc(p.full_name || p.username)}</h2>
+          <p style="color:var(--mut);font-size:13px">@${esc(p.username)}</p>
+        </div>
+        ${mine
+          ? `<button class="btn sm" id="editProf">تعديل</button>`
+          : `<button class="btn sm ${isFol?'ghost':'primary'}" id="followBtn">${isFol?'إلغاء المتابعة':'متابعة'}</button>`}
+      </div>
+      ${p.bio ? `<p style="margin-top:10px;line-height:1.8;font-size:14px">${esc(p.bio)}</p>` : ''}
+      ${p.city ? `<p style="color:var(--mut);font-size:12.5px;margin-top:6px">📍 ${esc(p.city)}</p>` : ''}
+      <div class="prof-stats">
+        <div><b>${nPosts}</b><small>منشور</small></div>
+        <div><b>${nFol}</b><small>متابع</small></div>
+        <div><b>${nFing}</b><small>يتابع</small></div>
+      </div>
+    </div>
+    <div id="profContent" style="margin-top:16px"></div>`;
+
+  if (mine) $('#editProf').onclick = () => editProfileModal(p);
+  else $('#followBtn').onclick = async e => {
+    const b = e.target;
+    if (isFol) { await sb.from('follows').delete().match({ follower_id: S.me.id, following_id: p.id }); }
+    else { await sb.from('follows').insert({ follower_id: S.me.id, following_id: p.id }); }
+    renderProfile(username);
+  };
+
+  const [{ data: posts }, { data: lsts }] = await Promise.all([
+    sb.from('posts').select('*, author:profiles!posts_user_id_fkey(id,username,full_name,avatar_url), post_likes(user_id), comments(count)')
+      .eq('user_id', p.id).order('created_at', { ascending: false }).limit(20),
+    sb.from('listings').select('*').eq('user_id', p.id).order('created_at', { ascending: false }).limit(20)
+  ]);
+
+  const box = $('#profContent');
+  box.innerHTML = `
+    ${lsts?.length ? `<h3 style="font-size:16px;margin-bottom:10px">إعلانات (${lsts.length})</h3>
+      <div class="grid-list" style="margin-bottom:20px">${lsts.map(l => `
+        <article class="card lcard" data-lid="${l.id}">
+          <div class="thumb">${l.images?.[0]?`<img src="${esc(l.images[0])}">`:''}</div>
+          <div class="info"><h4>${esc(l.title)}</h4>
+          <div class="price">${l.price!=null?esc(l.price)+' د.م':'على السوم'}</div></div>
+        </article>`).join('')}</div>` : ''}
+    <h3 style="font-size:16px;margin-bottom:10px">المنشورات</h3>
+    ${posts?.length ? posts.map(x => postHTML(x)).join('') : '<div class="empty">ما كاين حتى منشور</div>'}`;
+
+  bindPostActions(posts || []);
+  box.querySelectorAll('[data-lid]').forEach(c => c.onclick = () => listingDetail(c.dataset.lid));
+}
+
+function editProfileModal(p){
+  const o = openModal(`
+    <h3>تعديل البروفايل <button class="x" data-close>✕</button></h3>
+    <div style="text-align:center;margin-bottom:14px">
+      ${avatarHTML(p,'lg')}
+      <div style="margin-top:8px"><label class="chip">تغيير الصورة<input type="file" id="epAva" accept="image/*" hidden></label></div>
+    </div>
+    <div class="field"><label class="label">الاسم الكامل</label>
+      <input class="input" id="epName" value="${esc(p.full_name||'')}"></div>
+    <div class="field"><label class="label">نبذة</label>
+      <textarea class="input" id="epBio" rows="3">${esc(p.bio||'')}</textarea></div>
+    <div class="field"><label class="label">المدينة</label>
+      <input class="input" id="epCity" value="${esc(p.city||'')}"></div>
+    <button class="btn primary" style="width:100%" id="epSave">حفظ</button>`);
+
+  o.querySelector('#epSave').onclick = async e => {
+    const btn = e.target; btn.disabled = true;
+    try {
+      let avatar_url = p.avatar_url;
+      const f = o.querySelector('#epAva').files[0];
+      if (f) avatar_url = await uploadFile(f, 'avatars');
+      const { error } = await sb.from('profiles').update({
+        full_name: o.querySelector('#epName').value.trim(),
+        bio: o.querySelector('#epBio').value.trim(),
+        city: o.querySelector('#epCity').value.trim() || null,
+        avatar_url
+      }).eq('id', S.me.id);
+      if (error) throw error;
+      o.remove(); toast('تحفظ', 'ok');
+      const { data } = await sb.from('profiles').select('*').eq('id', S.me.id).maybeSingle();
+      S.prof = data; renderProfile(data.username);
+    } catch (err) { toast(err.message,'err'); btn.disabled = false; }
+  };
+}
+
+/* ---------------- SEARCH ---------------- */
+async function renderSearch(q){
+  view.innerHTML = `<h2 style="font-size:19px;margin-bottom:14px">نتائج: ${esc(q)}</h2><div id="sres"></div>`;
+  const { data } = await sb.from('profiles').select('*')
+    .or(`username.ilike.%${q}%,full_name.ilike.%${q}%`).limit(30);
+  const box = $('#sres');
+  if (!data?.length) { box.innerHTML = '<div class="empty">ما لقيتش حتى واحد</div>'; return; }
+  box.innerHTML = data.map(p => `
+    <a class="card" href="#/profile/${encodeURIComponent(p.username)}"
+       style="display:flex;gap:12px;align-items:center;padding:13px;margin-bottom:10px">
+      ${avatarHTML(p)}
+      <div><b>${esc(p.full_name||p.username)}</b><br><small style="color:var(--mut)">@${esc(p.username)}</small></div>
+    </a>`).join('');
+}
+
+router();
+</script>
+</body>
+</html>

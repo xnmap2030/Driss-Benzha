@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>لوحة التحكم — سوقنا</title>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#07070e;--panel:#101020;--panel2:#16162a;--line:#232338;
+  --txt:#eef0f8;--mut:#8b90a8;--p1:#7c5cff;--p2:#22d3ee;--ok:#22c55e;--danger:#ef4444;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Cairo',sans-serif;background:var(--bg);color:var(--txt);min-height:100vh}
+body::before{content:'';position:fixed;inset:0;z-index:-1;
+  background:radial-gradient(900px 500px at 80% -10%,rgba(124,92,255,.2),transparent 60%),
+             radial-gradient(700px 400px at 5% 110%,rgba(34,211,238,.14),transparent 60%)}
+button,input,select{font-family:inherit;font-size:inherit;color:inherit}
+::-webkit-scrollbar{width:10px}::-webkit-scrollbar-thumb{background:#2a2a42;border-radius:9px}
+
+.btn{display:inline-flex;align-items:center;gap:7px;padding:10px 16px;border-radius:11px;
+  border:1px solid var(--line);background:var(--panel2);cursor:pointer;font-weight:700;font-size:13.5px;transition:.15s}
+.btn:hover{background:#20203a}
+.btn.primary{background:linear-gradient(135deg,var(--p1),#a855f7);border-color:transparent}
+.btn.danger{background:rgba(239,68,68,.15);border-color:rgba(239,68,68,.4);color:#ffb4b4}
+.btn.ok{background:rgba(34,197,94,.15);border-color:rgba(34,197,94,.4);color:#b6ffcf}
+.btn.sm{padding:6px 11px;font-size:12px;border-radius:9px}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.input{width:100%;padding:11px 13px;border-radius:11px;border:1px solid var(--line);background:#0c0c18}
+.input:focus{outline:none;border-color:var(--p1)}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:14px}
+
+#gate{min-height:100vh;display:grid;place-items:center;padding:20px}
+.gate-box{width:100%;max-width:400px}
+.logo{width:46px;height:46px;border-radius:13px;display:grid;place-items:center;font-weight:900;font-size:21px;
+  background:linear-gradient(135deg,var(--p1),var(--p2));color:#fff;margin:0 auto 14px}
+h1{font-size:22px;text-align:center;margin-bottom:6px}
+.sub{text-align:center;color:var(--mut);font-size:13px;margin-bottom:22px}
+
+#dash{display:none}
+header{position:sticky;top:0;z-index:50;background:rgba(7,7,14,.9);backdrop-filter:blur(16px);
+  border-bottom:1px solid var(--line);padding:12px 18px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+header .logo{width:36px;height:36px;font-size:17px;margin:0;border-radius:10px}
+header h2{font-size:15px;font-weight:900}
+header .sp{flex:1}
+main{max-width:1240px;margin:0 auto;padding:22px 18px 70px}
+
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:13px;margin-bottom:22px}
+.stat{padding:16px;position:relative;overflow:hidden}
+.stat b{display:block;font-size:27px;font-weight:900;line-height:1.2}
+.stat small{color:var(--mut);font-size:12px;font-weight:700}
+.stat .ico{position:absolute;left:12px;top:12px;opacity:.25}
+
+.tabs{display:flex;gap:6px;background:var(--panel);padding:5px;border-radius:12px;
+  margin-bottom:18px;overflow-x:auto;border:1px solid var(--line)}
+.tabs button{padding:9px 16px;border:0;background:transparent;border-radius:9px;cursor:pointer;
+  font-weight:700;color:var(--mut);white-space:nowrap;font-size:13px}
+.tabs button.on{background:var(--panel2);color:var(--txt)}
+
+table{width:100%;border-collapse:collapse;font-size:13.5px}
+thead th{text-align:right;padding:11px 12px;color:var(--mut);font-size:11.5px;font-weight:700;
+  border-bottom:1px solid var(--line);text-transform:uppercase;letter-spacing:.4px}
+tbody td{padding:11px 12px;border-bottom:1px solid #1a1a2c;vertical-align:middle}
+tbody tr:hover{background:#0d0d1a}
+.avatar{width:34px;height:34px;border-radius:50%;object-fit:cover;background:linear-gradient(135deg,var(--p1),var(--p2));
+  display:grid;place-items:center;font-weight:900;font-size:13px;color:#fff;overflow:hidden}
+.badge{padding:3px 9px;border-radius:7px;font-size:11px;font-weight:800}
+.badge.admin{background:rgba(124,92,255,.2);color:#c3b5ff}
+.badge.banned{background:rgba(239,68,68,.18);color:#ffb4b4}
+.badge.user{background:#1c1c30;color:var(--mut)}
+.pill{display:inline-flex;align-items:center;gap:6px;color:var(--mut);font-size:12px}
+.tbl-wrap{overflow-x:auto;border-radius:13px;border:1px solid var(--line);background:var(--panel)}
+.toolbar{display:flex;gap:9px;margin-bottom:13px;flex-wrap:wrap}
+.toolbar .input{max-width:300px}
+.empty{text-align:center;padding:44px;color:var(--mut);font-size:14px}
+#toastRoot{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);z-index:300;display:grid;gap:8px}
+.toast{padding:11px 18px;border-radius:11px;background:#1c1c2e;border:1px solid var(--line);font-weight:700;font-size:13px}
+.toast.err{background:rgba(239,68,68,.18);border-color:rgba(239,68,68,.5);color:#ffc4c4}
+.toast.ok{background:rgba(34,197,94,.18);border-color:rgba(34,197,94,.5);color:#b6ffcf}
+.hint{font-size:12px;color:var(--mut);margin-top:8px;line-height:1.7}
+@media(max-width:640px){header h2{font-size:13px}}
+</style>
+</head>
+<body>
+
+<div id="gate">
+  <div class="gate-box card" style="padding:26px">
+    <div class="logo">⚡</div>
+    <h1>لوحة التحكم</h1>
+    <p class="sub">خاص بالأدمن فقط</p>
+    <div style="margin-bottom:12px">
+      <input class="input" id="gEmail" type="email" placeholder="البريد الإلكتروني">
+    </div>
+    <div style="margin-bottom:14px">
+      <input class="input" id="gPass" type="password" placeholder="كلمة السر">
+    </div>
+    <button class="btn primary" style="width:100%" id="gLogin">دخول</button>
+    <p class="hint" id="gateMsg"></p>
+  </div>
+</div>
+
+<div id="dash">
+  <header>
+    <div class="logo">⚡</div>
+    <h2>لوحة تحكم سوقنا</h2>
+    <div class="sp"></div>
+    <a class="btn sm" href="./index.html" target="_blank">الموقع</a>
+    <button class="btn sm danger" id="outBtn">خروج</button>
+  </header>
+
+  <main>
+    <div class="stats" id="stats"></div>
+
+    <div class="card" style="padding:13px;margin-bottom:18px">
+      <div style="display:flex;gap:9px;flex-wrap:wrap">
+        <input class="input" id="srk" type="password" placeholder="Service Role Key (اختياري — للحذف النهائي للحسابات)" style="max-width:520px">
+        <button class="btn sm" id="srkSave">حفظ</button>
+      </div>
+      <p class="hint">بلا هاد المفتاح، الحذف كيمسح البيانات والبروفايل ولكن كيخلي حساب الدخول. بالمفتاح، الحذف كيكون نهائي.
+      المفتاح كيتسجل غير فهاد الجهاز.</p>
+    </div>
+
+    <div class="tabs">
+      <button data-tab="users" class="on">المستخدمين</button>
+      <button data-tab="posts">المنشورات</button>
+      <button data-tab="listings">الإعلانات</button>
+      <button data-tab="comments">التعليقات</button>
+    </div>
+
+    <div class="toolbar"><input class="input" id="q" placeholder="قلب..."></div>
+    <div id="panel"></div>
+  </main>
+</div>
+
+<div id="toastRoot"></div>
+
+<script type="module">
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+
+const URL_ = 'https://vxzkyydoeyvpsevllouv.supabase.co';
+const KEY_ = 'sb_publishable_oR8wLT872aQ5MWcKLmJVbQ_uesOIK7i';
+const sb = createClient(URL_, KEY_);
+
+let adminClient = null;
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+let me = null, tab = 'users', q = '';
+
+function toast(m,k=''){const d=document.createElement('div');d.className='toast '+k;d.textContent=m;
+  $('#toastRoot').appendChild(d);setTimeout(()=>{d.style.opacity=0;d.style.transition='.3s';setTimeout(()=>d.remove(),300)},2500);}
+function av(p){return p?.avatar_url?`<img class="avatar" src="${esc(p.avatar_url)}">`:
+  `<div class="avatar">${esc((p?.full_name||p?.username||'?').charAt(0).toUpperCase())}</div>`;}
+const dt = s => new Date(s).toLocaleString('ar-MA');
+
+const saved = localStorage.getItem('srk');
+if (saved) { $('#srk').value = saved; adminClient = createClient(URL_, saved, { auth:{persistSession:false} }); }
+$('#srkSave').onclick = () => {
+  const v = $('#srk').value.trim();
+  if (!v) { localStorage.removeItem('srk'); adminClient = null; return toast('تحيد','ok'); }
+  localStorage.setItem('srk', v);
+  adminClient = createClient(URL_, v, { auth:{persistSession:false} });
+  toast('تسجل','ok');
+};
+
+$('#gLogin').onclick = async () => {
+  const b = $('#gLogin'); b.disabled = true; $('#gateMsg').textContent = '';
+  const { data, error } = await sb.auth.signInWithPassword({
+    email: $('#gEmail').value.trim(), password: $('#gPass').value
+  });
+  if (error) { b.disabled = false; $('#gateMsg').textContent = error.message; return; }
+  const { data: p } = await sb.from('profiles').select('*').eq('id', data.user.id).maybeSingle();
+  if (p?.role !== 'admin') {
+    await sb.auth.signOut(); b.disabled = false;
+    $('#gateMsg').textContent = 'هاد الحساب ماشي أدمن';
+    return;
+  }
+  me = p; b.disabled = false;
+  $('#gate').style.display = 'none'; $('#dash').style.display = 'block';
+  loadStats(); loadPanel();
+};
+
+$('#outBtn').onclick = async () => { await sb.auth.signOut(); location.reload(); };
+
+async function loadStats(){
+  const one = async (t, f) => {
+    let r = sb.from(t).select('*', { count:'exact', head:true });
+    if (f) r = f(r);
+    const { count } = await r; return count || 0;
+  };
+  const since = new Date(Date.now() - 7*864e5).toISOString();
+  const [u,p,l,c,lik,nu] = await Promise.all([
+    one('profiles'), one('posts'), one('listings'), one('comments'), one('post_likes'),
+    one('profiles', r => r.gte('created_at', since))
+  ]);
+  $('#stats').innerHTML = [
+    ['المستخدمين', u, '#7c5cff'], ['جدد (7 أيام)', nu, '#22d3ee'],
+    ['المنشورات', p, '#22c55e'], ['الإعلانات', l, '#f59e0b'],
+    ['التعليقات', c, '#ec4899'], ['اللايكات', lik, '#ef4444']
+  ].map(([t,v,col]) => `<div class="card stat"><b style="color:${col}">${v}</b><small>${t}</small></div>`).join('');
+}
+
+document.querySelectorAll('[data-tab]').forEach(b => b.onclick = () => {
+  tab = b.dataset.tab; q = ''; $('#q').value = '';
+  document.querySelectorAll('[data-tab]').forEach(x => x.classList.toggle('on', x === b));
+  loadPanel();
+});
+$('#q').oninput = e => { q = e.target.value.trim(); clearTimeout(window._t); window._t = setTimeout(loadPanel, 350); };
+
+async function loadPanel(){
+  const p = $('#panel');
+  p.innerHTML = '<div class="empty">تحميل...</div>';
+  if (tab === 'users') return loadUsers();
+  if (tab === 'posts') return loadPosts();
+  if (tab === 'listings') return loadListings();
+  return loadComments();
+}
+
+async function loadUsers(){
+  let r = sb.from('profiles').select('*').order('created_at', { ascending:false }).limit(100);
+  if (q) r = r.or(`username.ilike.%${q}%,full_name.ilike.%${q}%`);
+  const { data, error } = await r;
+  if (error) return $('#panel').innerHTML = `<div class="empty">${esc(error.message)}</div>`;
+  if (!data?.length) return $('#panel').innerHTML = '<div class="empty">ما كاين حتى مستخدم</div>';
+  $('#panel').innerHTML = `<div class="tbl-wrap"><table><thead><tr>
+    <th>المستخدم</th><th>البريد</th><th>الحالة</th><th>التسجيل</th><th>إجراءات</th>
+  </tr></thead><tbody>${data.map(u => `<tr>
+    <td><div style="display:flex;gap:9px;align-items:center">${av(u)}
+      <div><b>${esc(u.full_name||u.username)}</b><br><small style="color:var(--mut)">@${esc(u.username)}</small></div></div></td>
+    <td style="color:var(--mut);font-size:12px">${esc(u.id.slice(0,8))}…</td>
+    <td>${u.role==='admin'?'<span class="badge admin">أدمن</span>':''}
+        ${u.is_banned?'<span class="badge banned">موقوف</span>':''}
+        ${u.role!=='admin'&&!u.is_banned?'<span class="badge user">عادي</span>':''}</td>
+    <td style="color:var(--mut);font-size:12px">${dt(u.created_at)}</td>
+    <td><div style="display:flex;gap:5px;flex-wrap:wrap">
+      <button class="btn sm" data-ban="${u.id}" data-v="${u.is_banned}">${u.is_banned?'إرجاع':'إيقاف'}</button>
+      <button class="btn sm" data-role="${u.id}" data-v="${u.role}">${u.role==='admin'?'تنزيل':'ترقية'}</button>
+      <button class="btn sm danger" data-del="${u.id}" data-n="${esc(u.username)}">حذف</button>
+    </div></td></tr>`).join('')}</tbody></table></div>`;
+
+  $('#panel').querySelectorAll('[data-ban]').forEach(b => b.onclick = async () => {
+    await sb.from('profiles').update({ is_banned: b.dataset.v !== 'true' }).eq('id', b.dataset.ban);
+    toast('تبدل','ok'); loadPanel(); loadStats();
+  });
+  $('#panel').querySelectorAll('[data-role]').forEach(b => b.onclick = async () => {
+    await sb.from('profiles').update({ role: b.dataset.v === 'admin' ? 'user' : 'admin' }).eq('id', b.dataset.role);
+    toast('تبدل','ok'); loadPanel();
+  });
+  $('#panel').querySelectorAll('[data-del]').forEach(b => b.onclick = async () => {
+    if (!confirm(`تحذف الحساب @${b.dataset.n} بكل ما فيه؟`)) return;
+    const id = b.dataset.del;
+    const { error } = await sb.from('profiles').delete().eq('id', id);
+    if (error) return toast(error.message, 'err');
+    if (adminClient) {
+      const { error: e2 } = await adminClient.auth.admin.deleteUser(id);
+      if (e2) toast('تحيد البيانات، ولكن حساب الدخول بقا: ' + e2.message, 'err');
+    }
+    toast('تحذف','ok'); loadPanel(); loadStats();
+  });
+}
+
+async function loadPosts(){
+  let r = sb.from('posts')
+    .select('*, author:profiles!posts_user_id_fkey(id,username,full_name,avatar_url)')
+    .order('created_at', { ascending:false }).limit(60);
+  if (q) r = r.ilike('content', `%${q}%`);
+  const { data, error } = await r;
+  if (error) return $('#panel').innerHTML = `<div class="empty">${esc(error.message)}</div>`;
+  if (!data?.length) return $('#panel').innerHTML = '<div class="empty">ما كاين حتى منشور</div>';
+  $('#panel').innerHTML = `<div class="tbl-wrap"><table><thead><tr>
+    <th>الكاتب</th><th>المحتوى</th><th>الوسائط</th><th>التاريخ</th><th></th></tr></thead><tbody>
+    ${data.map(x => `<tr>
+      <td><div style="display:flex;gap:9px;align-items:center">${av(x.author)}
+        <small>@${esc(x.author.username)}</small></div></td>
+      <td style="max-width:340px">${esc((x.content||'—').slice(0,140))}</td>
+      <td>${x.media_type?`<span class="pill">${x.media_type==='video'?'🎬':'🖼'}</span>`:'—'}</td>
+      <td style="color:var(--mut);font-size:12px">${dt(x.created_at)}</td>
+      <td><button class="btn sm danger" data-delp="${x.id}">حذف</button></td>
+    </tr>`).join('')}</tbody></table></div>`;
+  $('#panel').querySelectorAll('[data-delp]').forEach(b => b.onclick = async () => {
+    if (!confirm('تحذف؟')) return;
+    const { error } = await sb.from('posts').delete().eq('id', b.dataset.delp);
+    if (error) return toast(error.message,'err');
+    toast('تحذف','ok'); loadPanel(); loadStats();
+  });
+}
+
+async function loadListings(){
+  let r = sb.from('listings')
+    .select('*, seller:profiles!listings_user_id_fkey(id,username,full_name,avatar_url)')
+    .order('created_at', { ascending:false }).limit(60);
+  if (q) r = r.ilike('title', `%${q}%`);
+  const { data, error } = await r;
+  if (error) return $('#panel').innerHTML = `<div class="empty">${esc(error.message)}</div>`;
+  if (!data?.length) return $('#panel').innerHTML = '<div class="empty">ما كاين حتى إعلان</div>';
+  $('#panel').innerHTML = `<div class="tbl-wrap"><table><thead><tr>
+    <th>الإعلان</th><th>القسم</th><th>الثمن</th><th>البائع</th><th>الحالة</th><th></th></tr></thead><tbody>
+    ${data.map(l => `<tr>
+      <td>${l.images?.[0]?`<img src="${esc(l.images[0])}" style="width:52px;height:38px;object-fit:cover;border-radius:7px">`:''}
+        <div style="font-weight:700;font-size:13px">${esc(l.title)}</div></td>
+      <td>${esc(l.category)}</td>
+      <td>${l.price!=null?esc(l.price):'—'}</td>
+      <td><small>@${esc(l.seller.username)}</small></td>
+      <td><span class="badge ${l.status==='active'?'user':'banned'}">${esc(l.status)}</span></td>
+      <td><button class="btn sm danger" data-dell="${l.id}">حذف</button></td>
+    </tr>`).join('')}</tbody></table></div>`;
+  $('#panel').querySelectorAll('[data-dell]').forEach(b => b.onclick = async () => {
+    if (!confirm('تحذف الإعلان؟')) return;
+    const { error } = await sb.from('listings').delete().eq('id', b.dataset.dell);
+    if (error) return toast(error.message,'err');
+    toast('تحذف','ok'); loadPanel(); loadStats();
+  });
+}
+
+async function loadComments(){
+  const { data, error } = await sb.from('comments')
+    .select('*, author:profiles!comments_user_id_fkey(id,username,avatar_url), posts(id)')
+    .order('created_at', { ascending:false }).limit(60);
+  if (error) return $('#panel').innerHTML = `<div class="empty">${esc(error.message)}</div>`;
+  if (!data?.length) return $('#panel').innerHTML = '<div class="empty">ما كاين حتى تعليق</div>';
+  $('#panel').innerHTML = `<div class="tbl-wrap"><table><thead><tr>
+    <th>الكاتب</th><th>التعليق</th><th>التاريخ</th><th></th></tr></thead><tbody>
+    ${data.map(c => `<tr>
+      <td><small>@${esc(c.author.username)}</small></td>
+      <td style="max-width:400px">${esc(c.content)}</td>
+      <td style="color:var(--mut);font-size:12px">${dt(c.created_at)}</td>
+      <td><button class="btn sm danger" data-delc="${c.id}">حذف</button></td>
+    </tr>`).join('')}</tbody></table></div>`;
+  $('#panel').querySelectorAll('[data-delc]').forEach(b => b.onclick = async () => {
+    const { error } = await sb.from('comments').delete().eq('id', b.dataset.delc);
+    if (error) return toast(error.message,'err');
+    toast('تحذف','ok'); loadPanel(); loadStats();
+  });
+}
+</script>
+</body>
+</html>
