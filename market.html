@@ -570,7 +570,7 @@ body,button,input,textarea,select{font-family:'Tajawal','Cairo',system-ui,sans-s
   align-self:flex-end;background:#fff;border:1px solid var(--line);
   border-bottom-left-radius:5px;
 }
-.bub audio{width:220px;max-width:100%;display:block;height:36px}
+.bub audio{width:230px;max-width:100%;display:block;height:38px}
 .bub img{max-width:230px;border-radius:11px;display:block;cursor:pointer}
 .bub .meta{display:block;font-size:10.5px;opacity:.62;margin-top:4px;text-align:left}
 .thread-form{
@@ -584,12 +584,25 @@ body,button,input,textarea,select{font-family:'Tajawal','Cairo',system-ui,sans-s
   animation:pulse 1s infinite;
 }
 @keyframes pulse{50%{box-shadow:0 0 0 6px rgba(220,53,69,.14)}}
+
+/* شريط التسجيل الصوتي */
 .rec-bar{
   display:none;align-items:center;gap:9px;padding:8px 12px;background:#fff1f1;
   border-top:1px solid #f3caca;color:#c92f3d;font-size:12.5px;font-weight:700;
+  flex-wrap:wrap;
 }
 .rec-bar.on{display:flex}
-.rec-bar .blink{width:9px;height:9px;border-radius:50%;background:#dc3545;animation:pulse 1s infinite}
+.rec-bar .blink{
+  width:9px;height:9px;border-radius:50%;background:#dc3545;animation:pulse 1s infinite;flex:0 0 auto;
+}
+.rec-bar .rec-time{
+  font-variant-numeric:tabular-nums;letter-spacing:.5px;
+  background:#fff;border:1px solid #f3caca;border-radius:999px;padding:2px 10px;
+}
+.rec-bar .rec-hint{flex:1;min-width:80px;font-weight:700;color:#a92e38}
+.rec-bar .btn{padding:6px 13px;font-size:12.5px}
+.rec-bar .btn.danger{background:#fff!important}
+
 .msg-date{
   align-self:center;font-size:11px;color:#8b90a8;background:#f1f1ec;
   padding:3px 10px;border-radius:999px;
@@ -598,6 +611,7 @@ body,button,input,textarea,select{font-family:'Tajawal','Cairo',system-ui,sans-s
   .thread{height:calc(100vh - 180px)}
   .bub{max-width:84%}
   .msg-row{padding:11px 12px}
+  .rec-bar .rec-hint{display:none}
 }
 
 /* ============ البحث الحي ============ */
@@ -812,6 +826,9 @@ function timeAgo(iso){
 function clockOf(iso){
   return new Date(iso).toLocaleTimeString('ar-MA', { hour:'2-digit', minute:'2-digit' });
 }
+function mmss(s){
+  return String(Math.floor(s/60)).padStart(2,'0') + ':' + String(s%60).padStart(2,'0');
+}
 function avatarHTML(p, cls=''){
   if (p?.avatar_url) return `<img class="avatar ${cls}" src="${esc(p.avatar_url)}" alt="">`;
   const ini = (p?.full_name || p?.username || '?').trim().charAt(0).toUpperCase();
@@ -835,10 +852,13 @@ function openModal(html){
   o.querySelectorAll('[data-close]').forEach(b => b.onclick = () => o.remove());
   return o;
 }
-async function uploadFile(file, bucket){
+async function uploadFile(file, bucket, contentType){
   const ext = (file.name.split('.').pop() || 'bin').toLowerCase();
   const path = `${S.me.id}/${crypto.randomUUID()}.${ext}`;
-  const { error } = await sb.storage.from(bucket).upload(path, file, { cacheControl: '31536000' });
+  const opts = { cacheControl: '31536000', upsert: false };
+  const ct = contentType || file.type;
+  if (ct) opts.contentType = ct;
+  const { error } = await sb.storage.from(bucket).upload(path, file, opts);
   if (error) throw error;
   return sb.storage.from(bucket).getPublicUrl(path).data.publicUrl;
 }
@@ -926,12 +946,13 @@ function setNav(k){
 }
 
 /* حالة الدردشة النشيطة */
-let msgChannel = null, msgTimer = null, rec = null, recChunks = [], recT0 = 0, recTimer = null;
+let msgChannel = null, msgTimer = null;
+let rec = null, recStream = null, recTimer = null, recChunks = [], recT0 = 0, recStopFn = null;
 
 function cleanupChat(){
   if (msgChannel) { try { sb.removeChannel(msgChannel); } catch(e){} msgChannel = null; }
   if (msgTimer) { clearInterval(msgTimer); msgTimer = null; }
-  if (rec && rec.state === 'recording') { try { rec.stop(); } catch(e){} }
+  if (recStopFn) { try { recStopFn(); } catch(e){} recStopFn = null; }
 }
 
 async function router(){
@@ -1730,6 +1751,33 @@ async function renderMessages(){
   }).join('');
 }
 
+/* ---------------- صيغ الصوت المدعومة ---------------- */
+const MIME_CANDIDATES = [
+  'audio/webm;codecs=opus',
+  'audio/webm',
+  'audio/ogg;codecs=opus',
+  'audio/ogg',
+  'audio/mp4;codecs=mp4a.40.2',
+  'audio/mp4',
+  'audio/mpeg'
+];
+
+function pickMime(){
+  if (typeof MediaRecorder === 'undefined') return '';
+  for (const m of MIME_CANDIDATES){
+    try { if (MediaRecorder.isTypeSupported(m)) return m; } catch (e) {}
+  }
+  return '';
+}
+function extForMime(m){
+  const s = String(m || '');
+  if (s.includes('mp4')) return 'm4a';
+  if (s.includes('ogg')) return 'ogg';
+  if (s.includes('mpeg')) return 'mp3';
+  if (s.includes('wav')) return 'wav';
+  return 'webm';
+}
+
 async function renderThread(username){
   view.innerHTML = '<div class="sk" style="height:300px"></div>';
   const { data: other } = await sb.from('profiles').select('*').eq('username', username).maybeSingle();
@@ -1751,7 +1799,13 @@ async function renderThread(username){
         <a class="btn sm ghost" href="#/profile/${encodeURIComponent(other.username)}">البروفايل</a>
       </div>
       <div class="thread-body" id="threadBody"><div class="sk" style="height:60px;width:60%"></div></div>
-      <div class="rec-bar" id="recBar"><span class="blink"></span> جارٍ التسجيل <span id="recTime">00:00</span> — كليكي على ⏹ للإرسال</div>
+      <div class="rec-bar" id="recBar">
+        <span class="blink"></span>
+        <span class="rec-time" id="recTime">00:00</span>
+        <span class="rec-hint">جارٍ التسجيل...</span>
+        <button type="button" class="btn sm danger" id="recCancel">إلغاء</button>
+        <button type="button" class="btn primary sm" id="recSend">إرسال</button>
+      </div>
       <form class="thread-form" id="threadForm">
         <label class="btn sm ghost" title="صورة">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>
@@ -1768,6 +1822,8 @@ async function renderThread(username){
   const body = $('#threadBody');
   const form = $('#threadForm');
   const input = $('#msgInput');
+  const recBar = $('#recBar');
+  const recBtn = $('#recBtn');
 
   const scrollDown = () => { body.scrollTop = body.scrollHeight; };
 
@@ -1784,7 +1840,7 @@ async function renderThread(username){
       const mine = m.sender_id === S.me.id;
       let inner = '';
       if (m.media_type === 'voice' && m.media_url) {
-        inner = `<audio controls preload="metadata" src="${esc(m.media_url)}"></audio>`;
+        inner = `<audio controls preload="metadata" playsinline src="${esc(m.media_url)}"></audio>`;
       } else if (m.media_type === 'image' && m.media_url) {
         inner = `<a href="${esc(m.media_url)}" target="_blank" rel="noopener"><img src="${esc(m.media_url)}" loading="lazy" alt="صورة"></a>`;
       }
@@ -1804,8 +1860,128 @@ async function renderThread(username){
     return true;
   };
 
+  /* --- التسجيل الصوتي --- */
+  let localRec = null, localStream = null, localTimer = null, chunks = [], t0 = 0, cancelled = false, sending = false;
+
+  const setRecUI = on => {
+    if (recBar) recBar.classList.toggle('on', on);
+    if (recBtn) recBtn.classList.toggle('rec-on', on);
+    if (recBtn) recBtn.disabled = on;
+  };
+
+  const killStream = () => {
+    if (localStream) { localStream.getTracks().forEach(t => t.stop()); localStream = null; }
+  };
+
+  const clearTimers = () => {
+    if (localTimer) { clearInterval(localTimer); localTimer = null; }
+  };
+
+  const hardReset = () => {
+    clearTimers(); killStream();
+    localRec = null; chunks = [];
+    setRecUI(false);
+    const rt = $('#recTime'); if (rt) rt.textContent = '00:00';
+  };
+
+  const stopRec = () => {
+    if (localRec && localRec.state !== 'inactive') {
+      try { localRec.stop(); } catch (e) { hardReset(); }
+    } else {
+      hardReset();
+    }
+  };
+
+  const cancelRec = () => { cancelled = true; stopRec(); };
+
+  const finishRec = async () => {
+    const type = localRec?.mimeType || '';
+    const dur = Math.round((Date.now() - t0) / 1000);
+    const parts = chunks.slice();
+    const wasCancelled = cancelled;
+
+    clearTimers(); killStream();
+    localRec = null; chunks = []; cancelled = false;
+    setRecUI(false);
+    const rt = $('#recTime'); if (rt) rt.textContent = '00:00';
+
+    if (wasCancelled) return;
+
+    const blob = new Blob(parts, { type: type || 'audio/webm' });
+    if (blob.size < 900) return toast('التسجيل قصير بزاف، عاود جرب', 'err');
+
+    const mime = type || 'audio/webm';
+    const file = new File([blob], `voice-${Date.now()}.${extForMime(mime)}`, { type: mime });
+
+    sending = true;
+    toast('كنصيفط التسجيل...', 'ok');
+    try {
+      const url = await uploadFile(file, 'messages', mime);
+      await send({ media_url: url, media_type: 'voice', duration: dur }, '🎤 رسالة صوتية');
+    } catch (err) {
+      toast('فشل إرسال التسجيل: ' + (err?.message || 'خطأ غير متوقع'), 'err');
+    } finally {
+      sending = false;
+    }
+  };
+
+  const startRec = async () => {
+    if (localRec || sending) return;
+
+    if (typeof MediaRecorder === 'undefined' || !navigator.mediaDevices?.getUserMedia) {
+      return toast('المتصفح ما كايدعمش التسجيل الصوتي', 'err');
+    }
+
+    try {
+      localStream = await navigator.mediaDevices.getUserMedia({
+        audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true }
+      });
+    } catch (err) {
+      const name = err?.name;
+      const msg = name === 'NotAllowedError' || name === 'SecurityError'
+        ? 'خاصك تسمح للميكرو من إعدادات المتصفح'
+        : name === 'NotFoundError'
+          ? 'ما لقيتش ميكرو فهاد الجهاز'
+          : 'ما قدرتش نوصل للميكرو';
+      return toast(msg, 'err');
+    }
+
+    const mime = pickMime();
+    try {
+      localRec = mime ? new MediaRecorder(localStream, { mimeType: mime }) : new MediaRecorder(localStream);
+    } catch (e) {
+      try { localRec = new MediaRecorder(localStream); }
+      catch (e2) { killStream(); return toast('ما قدرتش نبدا التسجيل', 'err'); }
+    }
+
+    chunks = []; t0 = Date.now(); cancelled = false;
+
+    localRec.ondataavailable = ev => { if (ev.data && ev.data.size) chunks.push(ev.data); };
+    localRec.onerror = () => { toast('وقع خطأ فالتسجيل', 'err'); hardReset(); };
+    localRec.onstop = () => { finishRec(); };
+
+    try { localRec.start(150); }
+    catch (e) { killStream(); localRec = null; return toast('ما قدرتش نبدا التسجيل', 'err'); }
+
+    setRecUI(true);
+    const rt = $('#recTime'); if (rt) rt.textContent = '00:00';
+    localTimer = setInterval(() => {
+      const s = Math.floor((Date.now() - t0) / 1000);
+      const el = $('#recTime');
+      if (el) el.textContent = mmss(s);
+      if (s >= 300) stopRec();
+    }, 250);
+  };
+
+  recStopFn = stopRec;
+
+  recBtn.onclick = () => { if (!localRec) startRec(); };
+  $('#recSend').onclick = () => { cancelled = false; stopRec(); };
+  $('#recCancel').onclick = () => cancelRec();
+
   form.onsubmit = async e => {
     e.preventDefault();
+    if (localRec) { cancelled = false; stopRec(); return; }
     const text = input.value.trim();
     if (!text) return;
     input.value = '';
@@ -1817,54 +1993,9 @@ async function renderThread(username){
     if (!f) return;
     e.target.value = '';
     try {
-      const url = await uploadFile(f, 'messages');
+      const url = await uploadFile(f, 'messages', f.type);
       await send({ media_url: url, media_type: 'image' }, '📷 صورة');
     } catch (err) { toast(err.message, 'err'); }
-  };
-
-  $('#recBtn').onclick = async () => {
-    const btn = $('#recBtn');
-    const bar = $('#recBar');
-
-    if (rec && rec.state === 'recording') { rec.stop(); return; }
-
-    if (!navigator.mediaDevices?.getUserMedia) return toast('المتصفح ما كايدعمش التسجيل', 'err');
-
-    let stream;
-    try { stream = await navigator.mediaDevices.getUserMedia({ audio: true }); }
-    catch (err) { return toast('ما قدرتش نوصل للميكرو', 'err'); }
-
-    recChunks = []; recT0 = Date.now();
-    rec = new MediaRecorder(stream);
-
-    rec.ondataavailable = ev => { if (ev.data.size) recChunks.push(ev.data); };
-
-    rec.onstop = async () => {
-      stream.getTracks().forEach(t => t.stop());
-      clearInterval(recTimer); recTimer = null;
-      btn.classList.remove('rec-on'); bar.classList.remove('on');
-      const rt = $('#recTime'); if (rt) rt.textContent = '00:00';
-
-      const dur = Math.round((Date.now() - recT0) / 1000);
-      const blob = new Blob(recChunks, { type: rec.mimeType || 'audio/webm' });
-      rec = null;
-      if (blob.size < 1200) return toast('التسجيل قصير بزاف', 'err');
-
-      const ext = (blob.type.includes('mp4') ? 'm4a' : 'webm');
-      const file = new File([blob], `voice-${Date.now()}.${ext}`, { type: blob.type });
-      try {
-        const url = await uploadFile(file, 'messages');
-        await send({ media_url: url, media_type: 'voice', duration: dur }, '🎤 رسالة صوتية');
-      } catch (err) { toast(err.message, 'err'); }
-    };
-
-    rec.start();
-    btn.classList.add('rec-on'); bar.classList.add('on');
-    recTimer = setInterval(() => {
-      const s = Math.floor((Date.now() - recT0) / 1000);
-      const el = $('#recTime');
-      if (el) el.textContent = String(Math.floor(s/60)).padStart(2,'0') + ':' + String(s%60).padStart(2,'0');
-    }, 300);
   };
 
   await loadMsgs();
@@ -1883,4 +2014,4 @@ async function renderThread(username){
 router();
 </script>
 </body>
-          </html>
+</html>
